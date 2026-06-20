@@ -510,9 +510,9 @@ function Active(){
   const badge=typeBadge[ex.type]||typeBadge.accessory;
   const isBW=(exDef.inc==null?5:exDef.inc)===0;
 
-  const wrap=h('div',{style:`min-height:100vh;background:${T.bg};color:${T.txt};font-family:var(--body);display:flex;flex-direction:column`});
+  const wrap=h('div',{style:`height:100dvh;background:${T.bg};color:${T.txt};font-family:var(--body);display:flex;flex-direction:column;overflow:hidden`});
   // top bar
-  wrap.appendChild(h('div',{style:`background:${T.sf};border-bottom:1px solid ${T.bdr};padding:14px 20px;display:flex;justify-content:space-between;align-items:center`},[
+  wrap.appendChild(h('div',{style:`flex-shrink:0;background:${T.sf};border-bottom:1px solid ${T.bdr};padding:14px 20px;display:flex;justify-content:space-between;align-items:center`},[
     h('div',null,[
       h('div',{id:'elapsed',style:`font-family:var(--mono);font-size:22px;color:${T.acc};letter-spacing:1px`},fmtT(state.elapsed)),
       h('div',{style:`font-size:10px;color:${T.mut};letter-spacing:2px;margin-top:2px`},wkt.config.target.toUpperCase()+' · '+wkt.config.dur+'MIN'),
@@ -520,9 +520,9 @@ function Active(){
     h('button',{style:`background:${T.acc};color:${T.bg};border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:var(--disp);font-size:18px;font-weight:700`,onClick:saveWorkout},'SAVE & END'),
   ]));
   // progress bar
-  wrap.appendChild(h('div',{style:`height:3px;background:${T.bdr}`},h('div',{style:`height:100%;background:${T.acc};width:${progress*100}%;transition:width .5s`})));
+  wrap.appendChild(h('div',{style:`flex-shrink:0;height:3px;background:${T.bdr}`},h('div',{style:`height:100%;background:${T.acc};width:${progress*100}%;transition:width .5s`})));
   // tabs
-  wrap.appendChild(h('div',{style:`overflow-x:auto;display:flex;background:${T.sf};border-bottom:1px solid ${T.bdr}`},wkt.exercises.map((e,i)=>{
+  wrap.appendChild(h('div',{style:`flex-shrink:0;overflow-x:auto;display:flex;background:${T.sf};border-bottom:1px solid ${T.bdr}`},wkt.exercises.map((e,i)=>{
     const done=e.loggedSets.length>=e.pSets, active=i===state.exIdx;
     return h('button',{style:`padding:11px 14px;border:none;border-bottom:2px solid ${active?T.acc:'transparent'};background:transparent;color:${done?T.ok:active?T.acc:T.mut};cursor:pointer;white-space:nowrap;flex-shrink:0;font-size:12px;font-family:var(--body);font-weight:${active?600:400}`,onClick:()=>{navTo(i);render();}},(i+1)+'. '+e.name.split(' ').slice(0,3).join(' ')+(done?' ✓':''));
   })));
@@ -591,7 +591,7 @@ function Active(){
   }
   main.appendChild(fixedTop);
 
-  const scrollArea=h('div',{style:`flex:1;overflow-y:auto;min-height:60px;padding:16px 20px;padding-bottom:${state.timer.on||isAllDone?'196px':'24px'}`});
+  const scrollArea=h('div',{style:`flex:1;overflow-y:auto;min-height:48px;padding:16px 20px 24px`});
   if(ex.loggedSets.length>0){
     scrollArea.appendChild(h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:10px`},'LOGGED SETS'));
     ex.loggedSets.forEach((s,i)=>{
@@ -608,7 +608,7 @@ function Active(){
 
   // complete banner
   if(isAllDone){
-    wrap.appendChild(h('div',{style:`position:fixed;bottom:0;left:0;right:0;background:${T.ok};padding:18px 24px;display:flex;justify-content:space-between;align-items:center`},[
+    wrap.appendChild(h('div',{style:`flex-shrink:0;background:${T.ok};padding:18px 24px;display:flex;justify-content:space-between;align-items:center`},[
       h('div',null,[
         h('div',{style:`font-family:var(--disp);font-size:26px;color:${T.bg};letter-spacing:1px;font-weight:700`},'WORKOUT COMPLETE!'),
         h('div',{style:`font-size:12px;color:${T.bg}99;margin-top:2px`},fmtT(state.elapsed)+' · '+wkt.exercises.reduce((a,e)=>a+e.loggedSets.length,0)+' total sets'),
@@ -619,7 +619,7 @@ function Active(){
   // rest timer
   if(state.timer.on&&!isAllDone){
     const C=2*Math.PI*32;
-    wrap.appendChild(h('div',{style:`position:fixed;bottom:0;left:0;right:0;background:${T.bg};border-top:2px solid ${T.tmr};padding:18px 24px;display:flex;align-items:center;justify-content:space-between`},[
+    wrap.appendChild(h('div',{style:`flex-shrink:0;background:${T.sf};border-top:2px solid ${T.tmr};padding:16px 24px;display:flex;align-items:center;justify-content:space-between`},[
       h('div',null,[
         h('div',{style:`font-size:10px;letter-spacing:3px;color:${T.tmr};margin-bottom:4px`},'REST'),
         h('div',{id:'rest-secs',style:`font-family:var(--mono);font-size:54px;color:${T.txt};line-height:1`},fmtT(state.timer.s)),
