@@ -527,18 +527,17 @@ function Active(){
     return h('button',{style:`padding:11px 14px;border:none;border-bottom:2px solid ${active?T.acc:'transparent'};background:transparent;color:${done?T.ok:active?T.acc:T.mut};cursor:pointer;white-space:nowrap;flex-shrink:0;font-size:12px;font-family:var(--body);font-weight:${active?600:400}`,onClick:()=>{navTo(i);render();}},(i+1)+'. '+e.name.split(' ').slice(0,3).join(' ')+(done?' ✓':''));
   })));
 
-  const main=h('div',{style:`flex:1;overflow-y:auto;padding:20px;max-width:480px;margin:0 auto;width:100%;box-sizing:border-box;padding-bottom:${state.timer.on||isAllDone?'188px':'20px'}`});
-  main.appendChild(h('div',{style:'margin-bottom:4px'},h('span',{style:`background:${badge.bg};color:${badge.color};font-size:10px;padding:3px 9px;border-radius:4px;letter-spacing:1.5px;font-weight:600`},badge.label)));
-  main.appendChild(h('div',{style:'font-family:var(--disp);font-size:36px;letter-spacing:.5px;line-height:1.02;margin-bottom:6px;font-weight:700'},ex.name));
-  main.appendChild(h('div',{style:`font-size:12px;color:${T.mut};margin-bottom:20px;line-height:1.7;font-style:italic`},ex.cue));
-  // set dots
-  main.appendChild(h('div',{style:'display:flex;gap:6px;margin-bottom:14px'},Array.from({length:ex.pSets}).map((_,i)=>h('div',{style:`flex:1;height:5px;border-radius:3px;background:${i<doneSets?T.ok:i===doneSets?T.acc:T.bdr}`}))));
-  main.appendChild(h('div',{style:'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px'},[
+  const main=h('div',{style:'flex:1;display:flex;flex-direction:column;overflow:hidden;max-width:480px;margin:0 auto;width:100%;box-sizing:border-box'});
+  const fixedTop=h('div',{style:'flex-shrink:0;padding:20px 20px 0'});
+  fixedTop.appendChild(h('div',{style:'margin-bottom:4px'},h('span',{style:`background:${badge.bg};color:${badge.color};font-size:10px;padding:3px 9px;border-radius:4px;letter-spacing:1.5px;font-weight:600`},badge.label)));
+  fixedTop.appendChild(h('div',{style:'font-family:var(--disp);font-size:36px;letter-spacing:.5px;line-height:1.02;margin-bottom:6px;font-weight:700'},ex.name));
+  fixedTop.appendChild(h('div',{style:`font-size:12px;color:${T.mut};margin-bottom:20px;line-height:1.7;font-style:italic`},ex.cue));
+  fixedTop.appendChild(h('div',{style:'display:flex;gap:6px;margin-bottom:14px'},Array.from({length:ex.pSets}).map((_,i)=>h('div',{style:`flex:1;height:5px;border-radius:3px;background:${i<doneSets?T.ok:i===doneSets?T.acc:T.bdr}`}))));
+  fixedTop.appendChild(h('div',{style:'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px'},[
     h('div',{style:`font-family:var(--mono);font-size:13px;color:${T.mut};letter-spacing:1px`},'SET '+Math.min(doneSets+1,ex.pSets)+' / '+ex.pSets),
-    h('div',{style:`font-size:13px;color:${T.mut}`,html:'Target: <span style="color:'+T.txt+';font-family:var(--mono)">'+ex.pReps+'–'+(ex.repMax||ex.pReps+3)+'</span> · Next: <span style="color:'+T.acc+';font-family:var(--mono)">'+(state.rIn||ex.pReps)+' reps</span>'}),
+    h('div',{style:`font-size:13px;color:${T.mut}`,html:'Target: <span style="color:'+T.txt+';font-family:var(--mono)">'+ex.pReps+'\u2013'+(ex.repMax||ex.pReps+3)+'</span> \u00b7 Next: <span style="color:'+T.acc+';font-family:var(--mono)">'+(state.rIn||ex.pReps)+' reps</span>'}),
   ]));
 
-  // progression card
   if(prog&&sm){
     const card=h('div',{style:`background:${T.sf};border:1px solid ${sm.color}44;border-radius:12px;padding:14px 16px;margin-bottom:16px`});
     const topRow=h('div',{style:'display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px'},[
@@ -570,41 +569,41 @@ function Active(){
         statBox('SESSIONS',prog.sessions),statBox('REP TREND',prog.trend,tm&&tm.color),
       ]));
     }
-    main.appendChild(card);
+    fixedTop.appendChild(card);
   } else {
-    main.appendChild(h('div',{style:`background:#0000000a;border:1px solid ${T.bdr};border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:${T.mut}`},isBW?'Bodyweight exercise — log reps to begin tracking':'First session — enter your working weight to begin tracking'));
+    fixedTop.appendChild(h('div',{style:`background:#0000000a;border:1px solid ${T.bdr};border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:${T.mut}`},isBW?'Bodyweight exercise \u2014 log reps to begin tracking':'First session \u2014 enter your working weight to begin tracking'));
   }
 
-  // inputs / log
   if(!isExDone){
     const wInput=h('input',{type:'number',inputmode:'decimal',value:state.wIn,placeholder:'0',style:`width:100%;box-sizing:border-box;padding:14px 8px;background:${T.el};border:1px solid ${T.bdr};border-radius:10px;color:${T.txt};font-family:var(--mono);font-size:32px;text-align:center`,onInput:e=>{state.wIn=e.target.value;}});
     const rInput=h('input',{type:'number',inputmode:'numeric',value:state.rIn,placeholder:String(ex.pReps),style:`width:100%;box-sizing:border-box;padding:14px 8px;background:${T.el};border:1px solid ${T.bdr};border-radius:10px;color:${T.txt};font-family:var(--mono);font-size:32px;text-align:center`,onInput:e=>{state.rIn=e.target.value;}});
-    main.appendChild(h('div',{style:'display:flex;gap:10px;margin-bottom:14px'},[
+    fixedTop.appendChild(h('div',{style:'display:flex;gap:10px;margin-bottom:14px'},[
       h('div',{style:'flex:1'},[h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:6px`},'WEIGHT (lbs)'),wInput]),
-      h('div',{style:'flex:1'},[h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:6px`,html:'REPS <span style="color:'+T.bdr+';letter-spacing:0;font-size:10px">('+ex.pReps+'–'+(ex.repMax||ex.pReps+3)+')</span>'}),rInput]),
+      h('div',{style:'flex:1'},[h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:6px`,html:'REPS <span style="color:'+T.bdr+';letter-spacing:0;font-size:10px">('+ex.pReps+'\u2013'+(ex.repMax||ex.pReps+3)+')</span>'}),rInput]),
     ]));
-    main.appendChild(h('button',{style:`width:100%;padding:17px;background:${T.acc};color:${T.bg};border:none;border-radius:12px;cursor:pointer;font-family:var(--disp);font-size:26px;letter-spacing:2px;font-weight:700`,onClick:logSet},'LOG SET '+(doneSets+1)));
+    fixedTop.appendChild(h('button',{style:`width:100%;padding:17px;background:${T.acc};color:${T.bg};border:none;border-radius:12px;cursor:pointer;font-family:var(--disp);font-size:26px;letter-spacing:2px;font-weight:700`,onClick:logSet},'LOG SET '+(doneSets+1)));
   } else if(!isAllDone){
-    main.appendChild(h('div',{style:`text-align:center;padding:24px;background:${T.ok}10;border-radius:14px;border:1px solid ${T.ok}28;margin-bottom:16px`},[
-      h('div',{style:'font-size:36px;margin-bottom:6px'},'✓'),
+    fixedTop.appendChild(h('div',{style:`text-align:center;padding:24px;background:${T.ok}10;border-radius:14px;border:1px solid ${T.ok}28;margin-bottom:16px`},[
+      h('div',{style:'font-size:36px;margin-bottom:6px'},'\u2713'),
       h('div',{style:`font-family:var(--disp);font-size:22px;color:${T.ok};font-weight:700`},'EXERCISE COMPLETE'),
-      h('button',{style:`margin-top:14px;background:${T.ok};color:${T.bg};border:none;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:var(--disp);font-size:16px;font-weight:700`,onClick:()=>{navTo(state.exIdx+1);render();}},'NEXT EXERCISE →'),
+      h('button',{style:`margin-top:14px;background:${T.ok};color:${T.bg};border:none;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:var(--disp);font-size:16px;font-weight:700`,onClick:()=>{navTo(state.exIdx+1);render();}},'NEXT EXERCISE \u2192'),
     ]));
   }
+  main.appendChild(fixedTop);
 
-  // logged sets
+  const scrollArea=h('div',{style:`flex:1;overflow-y:auto;min-height:60px;padding:16px 20px;padding-bottom:${state.timer.on||isAllDone?'196px':'24px'}`});
   if(ex.loggedSets.length>0){
-    const list=h('div',{style:'margin-top:22px'},[h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:10px`},'LOGGED SETS')]);
+    scrollArea.appendChild(h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:10px`},'LOGGED SETS'));
     ex.loggedSets.forEach((s,i)=>{
       const rm=(!isBW)&&s.weight>0&&s.reps>0?Math.round(est1RM(s.weight,s.reps)):null;
-      list.appendChild(h('div',{style:`display:flex;justify-content:space-between;align-items:center;padding:11px 16px;background:${T.sf};border:1px solid ${T.bdr};border-radius:8px;margin-bottom:6px`},[
+      scrollArea.appendChild(h('div',{style:`display:flex;justify-content:space-between;align-items:center;padding:11px 16px;background:${T.sf};border:1px solid ${T.bdr};border-radius:8px;margin-bottom:6px`},[
         h('span',{style:`font-size:12px;color:${T.mut};font-family:var(--mono)`},'SET '+(i+1)),
-        h('span',{style:`font-family:var(--mono);color:${T.ok};font-weight:600;font-size:14px`},(s.weight>0?s.weight+' lbs':'BW')+' × '+s.reps),
+        h('span',{style:`font-family:var(--mono);color:${T.ok};font-weight:600;font-size:14px`},(s.weight>0?s.weight+' lbs':'BW')+' \u00d7 '+s.reps),
         rm?h('span',{style:`font-family:var(--mono);color:${T.mut};font-size:11px`},'~'+rm+' 1RM'):h('span'),
       ]));
     });
-    main.appendChild(list);
   }
+  main.appendChild(scrollArea);
   wrap.appendChild(main);
 
   // complete banner
@@ -681,15 +680,16 @@ function saveWorkout(){
 function History(){
   const sorted=state.saved.slice().reverse();
   const wrap=h('div',{style:`min-height:100vh;background:${T.bg};color:${T.txt};font-family:var(--body)`});
-  const fileInput=h('input',{type:'file',accept:'application/json,.json',style:'display:none',onChange:handleImportFile});
+  const fileInput=h('input',{type:'file',accept:'text/csv,.csv',style:'display:none',onChange:handleImportFile});
   wrap.appendChild(h('div',{style:`background:${T.sf};border-bottom:1px solid ${T.bdr};padding:16px 20px;display:flex;align-items:center;gap:14px`},[
     h('button',{style:`background:${T.el};border:1px solid ${T.bdr};color:${T.txt};padding:8px 14px;border-radius:8px;cursor:pointer;font-family:var(--body);font-size:13px`,onClick:()=>go('setup')},'← Back'),
     h('div',{style:`font-family:var(--disp);font-size:30px;letter-spacing:1px;color:${T.acc};font-weight:700`},'HISTORY'),
-    h('div',{style:'margin-left:auto;display:flex;gap:8px'},[
-      fileInput,
-      h('button',{style:`background:${T.el};border:1px solid ${T.bdr};color:${T.txt};padding:8px 12px;border-radius:8px;cursor:pointer;font-family:var(--body);font-size:12px;display:flex;align-items:center;gap:6px`,onClick:()=>fileInput.click(),html:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Import'}),
-      h('button',{style:`background:${T.el};border:1px solid ${T.bdr};color:${T.txt};padding:8px 12px;border-radius:8px;cursor:pointer;font-family:var(--body);font-size:12px;display:flex;align-items:center;gap:6px`,onClick:handleExport,html:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Export'}),
-    ]),
+  ]));
+  // Import / Export row — on the page background, aligned with the cards below
+  wrap.appendChild(h('div',{style:`padding:20px 20px 0;max-width:480px;margin:0 auto;box-sizing:border-box;display:flex;gap:10px`},[
+    fileInput,
+    h('button',{style:`flex:1;background:${T.sf};border:1px solid ${T.bdr};color:${T.txt};padding:13px;border-radius:12px;cursor:pointer;font-family:var(--body);font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px`,onClick:()=>fileInput.click(),html:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Import'}),
+    h('button',{style:`flex:1;background:${T.sf};border:1px solid ${T.bdr};color:${T.txt};padding:13px;border-radius:12px;cursor:pointer;font-family:var(--body);font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px`,onClick:handleExport,html:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Export'}),
   ]));
   if(state.toast){
     const ok=state.toast.type==='ok';
@@ -772,12 +772,35 @@ function deleteWorkout(idx){
   state.histOpen=null; state.histExp=null; persist(); render();
 }
 function showToast(type,text){ state.toast={type,text}; render(); setTimeout(()=>{if(state.toast&&state.toast.text===text){state.toast=null;if(state.screen==='history')render();}},3500); }
+function csvCell(v){ v=(v==null?'':String(v)); return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function parseCSV(text){
+  const rows=[]; let row=[],cell='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=c; }
+    else { if(c==='"')q=true; else if(c===','){row.push(cell);cell='';} else if(c==='\n'){row.push(cell);cell='';rows.push(row);row=[];} else if(c==='\r'){} else cell+=c; }
+  }
+  if(cell!==''||row.length){row.push(cell);rows.push(row);}
+  return rows.filter(r=>!(r.length===1&&r[0]===''));
+}
 function handleExport(){
   if(!state.saved.length){ showToast('err','No workouts to export'); return; }
-  const payload={app:'FORGE',version:3,exported:new Date().toISOString(),workouts:state.saved};
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const header=['workout_id','date','target','duration_min','elapsed_sec','exercise_id','exercise_name','set_number','weight_lbs','reps'];
+  const rows=[header];
+  state.saved.forEach(w=>{
+    const wid=w.id||'', date=w.date||'', tgt=w.config?w.config.target:'', dur=w.config?w.config.dur:'', el=w.elapsed||0;
+    (w.exercises||[]).forEach(ex=>{
+      if(ex.loggedSets&&ex.loggedSets.length){
+        ex.loggedSets.forEach((s,i)=>rows.push([wid,date,tgt,dur,el,ex.id,ex.name,i+1,s.weight,s.reps]));
+      } else {
+        rows.push([wid,date,tgt,dur,el,ex.id,ex.name,'','','']);
+      }
+    });
+  });
+  const csv=rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv'});
   const url=URL.createObjectURL(blob), a=document.createElement('a');
-  a.href=url; a.download='forge-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.href=url; a.download='forge-backup-'+new Date().toISOString().slice(0,10)+'.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   showToast('ok','Exported '+state.saved.length+' workout'+(state.saved.length>1?'s':''));
 }
@@ -786,11 +809,30 @@ function handleImportFile(e){
   const reader=new FileReader();
   reader.onload=ev=>{
     try{
-      const data=JSON.parse(ev.target.result);
-      const list=Array.isArray(data)?data:data.workouts;
-      if(!Array.isArray(list))throw new Error('Unrecognized file format');
-      const valid=list.filter(w=>w&&w.exercises&&w.config);
-      if(!valid.length)throw new Error('No valid workouts found');
+      const rows=parseCSV(ev.target.result);
+      if(rows.length<2) throw new Error('No rows found');
+      const head=rows[0].map(s=>s.trim().toLowerCase());
+      const ci=name=>head.indexOf(name);
+      const need=['workout_id','date','exercise_id'];
+      if(need.some(n=>ci(n)<0)) throw new Error('Missing required columns');
+      const cW=ci('workout_id'),cD=ci('date'),cT=ci('target'),cDur=ci('duration_min'),cEl=ci('elapsed_sec'),cEi=ci('exercise_id'),cEn=ci('exercise_name'),cSn=ci('set_number'),cWt=ci('weight_lbs'),cR=ci('reps');
+      const byW=new Map();
+      rows.slice(1).forEach(r=>{
+        const wid=r[cW]; if(wid==null||wid==='')return;
+        if(!byW.has(wid)){
+          byW.set(wid,{id:(/^\d+$/.test(wid)?Number(wid):wid),date:r[cD]||new Date().toISOString(),config:{dur:Number(r[cDur])||60,target:r[cT]||'upper'},elapsed:Number(r[cEl])||0,exMap:new Map()});
+        }
+        const w=byW.get(wid), exId=r[cEi], exName=cEn>=0?r[cEn]:'';
+        if(!exId)return;
+        if(!w.exMap.has(exId)){
+          const def=getExDef({id:exId});
+          w.exMap.set(exId,Object.assign({},def,{id:exId,name:exName||def.name||exId,pSets:def.sets||3,pReps:def.reps||8,loggedSets:[]}));
+        }
+        const sn=cSn>=0?r[cSn]:'', rep=cR>=0?r[cR]:'';
+        if(sn!==''&&rep!==''){ w.exMap.get(exId).loggedSets.push({weight:parseFloat(r[cWt])||0,reps:parseInt(rep)||0,ts:Date.now()}); }
+      });
+      const valid=Array.from(byW.values()).map(w=>({id:w.id,date:w.date,config:w.config,elapsed:w.elapsed,exercises:Array.from(w.exMap.values())}));
+      if(!valid.length) throw new Error('No valid workouts found');
       const byId=new Map();
       state.saved.concat(valid).forEach(w=>{const k=w.id||JSON.stringify(w.date);byId.set(k,w);});
       state.saved=Array.from(byId.values()).sort((a,b)=>new Date(a.date)-new Date(b.date));
