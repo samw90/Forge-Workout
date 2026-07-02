@@ -27,47 +27,47 @@
 <div id="root"></div>
 <script>
 const DB = [
-  { id:'bench',     name:'Barbell Bench Press',   eq:['barbell','bench'],                 muscles:['upper'],         type:'compound', tags:['push','chest'],           sets:4, reps:5,  repMax:8,  rest:180, inc:5,   cue:'Retract scapula · arch · leg drive through floor' },
-  { id:'ohp',       name:'Overhead Press',         eq:['barbell','squat_rack'],            muscles:['upper'],         type:'compound', tags:['push','shoulders'],       sets:4, reps:5,  repMax:8,  rest:180, inc:5,   cue:'Bar over mid-foot · brace core · press around face' },
+  { id:'bench',     name:'Barbell Bench Press',   eq:['barbell','bench'],                 muscles:['upper'],         type:'compound', tags:['push','chest'],           sets:4, reps:5,  repMax:8,  rest:180, inc:5,   cue:'Pinch shoulder blades · leg drive · push yourself away from the bar' },
+  { id:'ohp',       name:'Overhead Press',         eq:['barbell','squat_rack'],            muscles:['upper'],         type:'compound', tags:['push','shoulders'],       sets:4, reps:5,  repMax:8,  rest:180, inc:5,   cue:'Squeeze glutes, ribs down · press to the ceiling · head through at top' },
   { id:'db_press',  name:'DB Bench Press',         eq:['dumbbell','bench'],                muscles:['upper'],         type:'accessory',tags:['push','chest'],           sets:3, reps:10, repMax:14, rest:90,  inc:5,   cue:'Full ROM · control descent · slight arc at top' },
-  { id:'db_shldr',  name:'DB Shoulder Press',      eq:['dumbbell'],                        muscles:['upper'],         type:'accessory',tags:['push','shoulders'],       sets:3, reps:10, repMax:14, rest:90,  inc:5,   cue:'Neutral spine · press overhead · lower with control' },
-  { id:'tri_push',  name:'Tricep Pushdown',        eq:['cable'],                           muscles:['upper'],         type:'accessory',tags:['push','triceps'],         sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Elbows pinned at sides · full lockout at bottom' },
-  { id:'cbl_fly',   name:'Cable Chest Fly',        eq:['cable'],                           muscles:['upper'],         type:'accessory',tags:['push','chest'],           sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Slight elbow bend · squeeze pec at midline' },
+  { id:'db_shldr',  name:'DB Shoulder Press',      eq:['dumbbell'],                        muscles:['upper'],         type:'accessory',tags:['push','shoulders'],       sets:3, reps:10, repMax:14, rest:90,  inc:5,   cue:'Ribs down · press to the ceiling · lower with control' },
+  { id:'tri_push',  name:'Tricep Pushdown',        eq:['cable'],                           muscles:['upper'],         type:'accessory',tags:['push','triceps'],         sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Elbows pinned to sides · squeeze triceps at lockout · control the return' },
+  { id:'cbl_fly',   name:'Cable Chest Fly',        eq:['cable'],                           muscles:['upper'],         type:'accessory',tags:['push','chest'],           sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Slight elbow bend · sweep a wide arc · squeeze pecs at the midline' },
   { id:'bb_row',    name:'Barbell Row',            eq:['barbell'],                         muscles:['upper'],         type:'compound', tags:['pull','back'],            sets:4, reps:6,  repMax:8,  rest:120, inc:5,   cue:'Hip hinge · bar to lower chest · elbows drive back' },
-  { id:'db_row',    name:'Single-Arm DB Row',      eq:['dumbbell','bench'],                muscles:['upper'],         type:'accessory',tags:['pull','back'],            sets:3, reps:10, repMax:14, rest:90,  inc:5,   cue:'Full scapular retraction · elbow drives behind torso' },
-  { id:'cbl_row',   name:'Cable Seated Row',       eq:['cable'],                           muscles:['upper'],         type:'accessory',tags:['pull','back'],            sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Squeeze rhomboids · elbows 45° · no torso swing' },
-  { id:'pulldown',  name:'Lat Pulldown',           eq:['cable'],                           muscles:['upper'],         type:'accessory',tags:['pull','back'],            sets:3, reps:10, repMax:14, rest:90,  inc:5,   cue:'Wide grip · pull to upper chest · slight lean back' },
-  { id:'face_pull', name:'Face Pulls',             eq:['cable'],                           muscles:['upper'],         type:'accessory',tags:['pull','shoulders'],       sets:3, reps:15, repMax:20, rest:60,  inc:2.5, cue:'Pull to face level · external rotation finish' },
-  { id:'db_curl',   name:'Dumbbell Curl',          eq:['dumbbell'],                        muscles:['upper'],         type:'accessory',tags:['pull','biceps'],          sets:3, reps:10, repMax:14, rest:60,  inc:5,   cue:'Supinate at top · no elbow drift forward' },
-  { id:'bb_curl',   name:'Barbell Curl',           eq:['barbell'],                         muscles:['upper'],         type:'accessory',tags:['pull','biceps'],          sets:3, reps:8,  repMax:12, rest:60,  inc:5,   cue:'Elbows fixed at sides · full ROM both directions' },
-  { id:'bk_squat',  name:'Back Squat',             eq:['barbell','squat_rack'],            muscles:['lower','full'],  type:'compound', tags:['squat','quads'],          sets:5, reps:5,  repMax:8,  rest:240, inc:10,  cue:'Bar on traps · break at hips+knees · drive through full foot' },
+  { id:'db_row',    name:'Single-Arm DB Row',      eq:['dumbbell','bench'],                muscles:['upper'],         type:'accessory',tags:['pull','back'],            sets:3, reps:10, repMax:14, rest:90,  inc:5,   cue:'Start the pull from the shoulder blade · elbow drives past hip · torso still' },
+  { id:'cbl_row',   name:'Cable Seated Row',       eq:['cable'],                           muscles:['upper'],         type:'accessory',tags:['pull','back'],            sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Chest tall, torso still · elbows at 45° drive back · squeeze shoulder blades' },
+  { id:'pulldown',  name:'Lat Pulldown',           eq:['cable'],                           muscles:['upper'],         type:'accessory',tags:['pull','back'],            sets:3, reps:10, repMax:14, rest:90,  inc:5,   cue:'Chest up, slight lean back · drive elbows down · bar to upper chest' },
+  { id:'face_pull', name:'Face Pulls',             eq:['cable'],                           muscles:['upper'],         type:'accessory',tags:['pull','shoulders'],       sets:3, reps:15, repMax:20, rest:60,  inc:2.5, cue:'Pull rope to eye level · elbows high · thumbs point behind you at finish' },
+  { id:'db_curl',   name:'Dumbbell Curl',          eq:['dumbbell'],                        muscles:['upper'],         type:'accessory',tags:['pull','biceps'],          sets:3, reps:10, repMax:14, rest:60,  inc:5,   cue:'Rotate pinky up as you curl · elbows pinned · squeeze biceps at the top' },
+  { id:'bb_curl',   name:'Barbell Curl',           eq:['barbell'],                         muscles:['upper'],         type:'accessory',tags:['pull','biceps'],          sets:3, reps:8,  repMax:12, rest:60,  inc:5,   cue:'Elbows pinned at sides · squeeze biceps at top · full stretch at bottom' },
+  { id:'bk_squat',  name:'Back Squat',             eq:['barbell','squat_rack'],            muscles:['lower','full'],  type:'compound', tags:['squat','quads'],          sets:5, reps:5,  repMax:8,  rest:240, inc:10,  cue:'Big breath, brace hard · spread the floor · drive up through mid-foot' },
   { id:'fr_squat',  name:'Front Squat',            eq:['barbell','squat_rack'],            muscles:['lower','full'],  type:'compound', tags:['squat','quads'],          sets:4, reps:4,  repMax:6,  rest:180, inc:5,   cue:'Elbows high · upright torso · knees track toes' },
   { id:'goblet',    name:'Goblet Squat',           eq:['dumbbell'],                        muscles:['lower'],         type:'accessory',tags:['squat','quads'],          sets:3, reps:12, repMax:16, rest:60,  inc:5,   cue:'DB at chest · squat deep · elbows inside knees' },
-  { id:'lunge',     name:'DB Walking Lunge',       eq:['dumbbell'],                        muscles:['lower'],         type:'accessory',tags:['squat','quads'],          sets:3, reps:12, repMax:16, rest:90,  inc:5,   cue:'Front knee tracks toes · back knee near floor' },
-  { id:'deadlift',  name:'Conventional Deadlift',  eq:['barbell','bumper_plates'],         muscles:['lower','full'],  type:'compound', tags:['hinge','hamstrings'],     sets:4, reps:5,  repMax:8,  rest:240, inc:10,  cue:'Neutral spine · bar over mid-foot · push floor away' },
-  { id:'rdl',       name:'Romanian Deadlift',      eq:['barbell'],                         muscles:['lower'],         type:'compound', tags:['hinge','hamstrings'],     sets:3, reps:8,  repMax:12, rest:120, inc:10,  cue:'Hip hinge · slight knee bend · feel hamstring stretch' },
+  { id:'lunge',     name:'DB Walking Lunge',       eq:['dumbbell'],                        muscles:['lower'],         type:'accessory',tags:['squat','quads'],          sets:3, reps:12, repMax:16, rest:90,  inc:5,   cue:'Torso tall · front knee tracks over toes · back knee kisses the floor' },
+  { id:'deadlift',  name:'Conventional Deadlift',  eq:['barbell','bumper_plates'],         muscles:['lower','full'],  type:'compound', tags:['hinge','hamstrings'],     sets:4, reps:5,  repMax:8,  rest:240, inc:10,  cue:'Bar over mid-foot · pull the slack out, brace · push the floor away' },
+  { id:'rdl',       name:'Romanian Deadlift',      eq:['barbell'],                         muscles:['lower'],         type:'compound', tags:['hinge','hamstrings'],     sets:3, reps:8,  repMax:12, rest:120, inc:10,  cue:'Push hips back to the wall behind you · bar close · feel hamstrings load' },
   { id:'db_rdl',    name:'DB Romanian Deadlift',   eq:['dumbbell'],                        muscles:['lower'],         type:'accessory',tags:['hinge','hamstrings'],     sets:3, reps:10, repMax:14, rest:90,  inc:5,   cue:'Hinge back · DBs close to shins · neutral spine' },
-  { id:'hip_thrust',name:'Barbell Hip Thrust',     eq:['barbell','bench','bumper_plates'], muscles:['lower'],         type:'compound', tags:['hinge','glutes'],         sets:3, reps:10, repMax:14, rest:120, inc:10,  cue:'Shoulders on bench · chin tucked · drive hips to lockout' },
+  { id:'hip_thrust',name:'Barbell Hip Thrust',     eq:['barbell','bench','bumper_plates'], muscles:['lower'],         type:'compound', tags:['hinge','glutes'],         sets:3, reps:10, repMax:14, rest:120, inc:10,  cue:'Chin tucked · drive hips to full lockout · squeeze glutes at the top' },
   { id:'pull_thru', name:'Cable Pull-Through',     eq:['cable'],                           muscles:['lower'],         type:'accessory',tags:['hinge','glutes'],         sets:3, reps:15, repMax:20, rest:60,  inc:5,   cue:'Hip hinge dominant · squeeze glutes at lockout' },
-  { id:'pwr_clean', name:'Power Clean',            eq:['barbell','bumper_plates'],         muscles:['full','lower'],  type:'olympic',  tags:['olympic','pull','power'], sets:5, reps:3,  repMax:5,  rest:180, inc:5,   cue:'Triple extension · violent hip drive · high elbows in catch' },
+  { id:'pwr_clean', name:'Power Clean',            eq:['barbell','bumper_plates'],         muscles:['full','lower'],  type:'olympic',  tags:['olympic','pull','power'], sets:5, reps:3,  repMax:5,  rest:180, inc:5,   cue:'Bar close · jump tall through the bar · elbows whip fast in the catch' },
   { id:'hng_clean', name:'Hang Clean',             eq:['barbell','bumper_plates'],         muscles:['full','lower'],  type:'olympic',  tags:['olympic','pull','power'], sets:4, reps:3,  repMax:5,  rest:180, inc:5,   cue:'Start at knees · explosive hip snap · pull under bar fast' },
   { id:'c_jerk',    name:'Clean & Jerk',           eq:['barbell','bumper_plates'],         muscles:['full'],          type:'olympic',  tags:['olympic','full','power'], sets:5, reps:2,  repMax:3,  rest:300, inc:5,   cue:'Full clean · recover · dip-drive · split jerk lockout' },
-  { id:'push_press',name:'Push Press',             eq:['barbell','squat_rack'],            muscles:['upper','full'],  type:'olympic',  tags:['olympic','push','shoulders'],sets:4,reps:4, repMax:6,  rest:180, inc:5,   cue:'Dip-drive with legs · press to lockout overhead' },
+  { id:'push_press',name:'Push Press',             eq:['barbell','squat_rack'],            muscles:['upper','full'],  type:'olympic',  tags:['olympic','push','shoulders'],sets:4,reps:4, repMax:6,  rest:180, inc:5,   cue:'Shallow dip, drive tall · punch the bar to the ceiling' },
   { id:'ext_rot',   name:'DB External Rotation',  eq:['dumbbell'],                        muscles:['recovery','upper'],type:'recovery',tags:['recovery','shoulders'],  sets:2, reps:15, repMax:20, rest:30,  inc:0,   cue:'Elbow at 90° · rotate outward · slow controlled tempo' },
   { id:'lt_fp',     name:'Light Face Pulls',       eq:['cable'],                           muscles:['recovery','upper'],type:'recovery',tags:['recovery','shoulders'],  sets:3, reps:20, repMax:25, rest:30,  inc:0,   cue:'Very light · focus on external rotation finish' },
   { id:'lt_rdl',    name:'Light DB RDL',           eq:['dumbbell'],                        muscles:['recovery','lower'],type:'recovery',tags:['recovery','hinge'],      sets:2, reps:15, repMax:20, rest:30,  inc:0,   cue:'Focus on hamstring lengthening · minimal loading intent' },
-  { id:'hip_circ',  name:'Hip Circle Walk',        eq:[],                                  muscles:['recovery','lower'],type:'recovery',tags:['recovery','hips'],       sets:2, reps:20, repMax:25, rest:30,  inc:0,   cue:'Lateral steps · band above knees · upright torso' },
+  { id:'hip_circ',  name:'Hip Circle Walk',        eq:['band'],                               muscles:['recovery','lower'],type:'recovery',tags:['recovery','hips'],       sets:2, reps:20, repMax:25, rest:30,  inc:0,   cue:'Lateral steps · band above knees · upright torso' },
 
   // ── BODYWEIGHT ──
-  { id:'pushup',      name:'Push-Up',                 eq:['bodyweight'],                      muscles:['upper'],        type:'compound', tags:['push','chest'],           sets:3, reps:10, repMax:20, rest:60,  inc:0,   cue:'Hands shoulder-width · full ROM · body rigid as plank throughout' },
+  { id:'pushup',      name:'Push-Up',                 eq:['bodyweight'],                      muscles:['upper'],        type:'compound', tags:['push','chest'],           sets:3, reps:10, repMax:20, rest:60,  inc:0,   cue:'Body one rigid line · chest to the floor · push the floor away' },
   { id:'dip',         name:'Dip',                     eq:['bodyweight'],                      muscles:['upper'],        type:'compound', tags:['push','chest','triceps'], sets:3, reps:8,  repMax:15, rest:90,  inc:0,   cue:'Lean forward for chest · upright torso for triceps emphasis' },
-  { id:'pullup',      name:'Pull-Up',                 eq:['bodyweight'],                      muscles:['upper'],        type:'compound', tags:['pull','back'],            sets:3, reps:5,  repMax:12, rest:120, inc:0,   cue:'Dead hang start · pull chest to bar · full arm extension' },
-  { id:'chinup',      name:'Chin-Up',                 eq:['bodyweight'],                      muscles:['upper'],        type:'compound', tags:['pull','biceps','back'],   sets:3, reps:6,  repMax:12, rest:120, inc:0,   cue:'Supinated grip · chin over bar · controlled eccentric' },
+  { id:'pullup',      name:'Pull-Up',                 eq:['bodyweight'],                      muscles:['upper'],        type:'compound', tags:['pull','back'],            sets:3, reps:5,  repMax:12, rest:120, inc:0,   cue:'Dead hang start · drive elbows down to your ribs · chest to the bar' },
+  { id:'chinup',      name:'Chin-Up',                 eq:['bodyweight'],                      muscles:['upper'],        type:'compound', tags:['pull','biceps','back'],   sets:3, reps:6,  repMax:12, rest:120, inc:0,   cue:'Palms facing you · chin over the bar · slow, controlled lower' },
   { id:'pike_pu',     name:'Pike Push-Up',            eq:['bodyweight'],                      muscles:['upper'],        type:'accessory',tags:['push','shoulders'],       sets:3, reps:8,  repMax:15, rest:60,  inc:0,   cue:'Hips high in inverted-V · lower crown toward floor · press back up' },
   { id:'inv_row',     name:'Inverted Row',            eq:['bodyweight','bench'],              muscles:['upper'],        type:'accessory',tags:['pull','back'],            sets:3, reps:10, repMax:15, rest:60,  inc:0,   cue:'Body rigid · pull chest to bar · full extension each rep' },
   { id:'diamond_pu',  name:'Diamond Push-Up',         eq:['bodyweight'],                      muscles:['upper'],        type:'accessory',tags:['push','triceps'],         sets:3, reps:8,  repMax:15, rest:60,  inc:0,   cue:'Hands form diamond under chest · elbows track back · full lockout' },
   { id:'bw_squat',    name:'Bodyweight Squat',        eq:['bodyweight'],                      muscles:['lower'],        type:'accessory',tags:['squat','quads'],          sets:3, reps:15, repMax:25, rest:60,  inc:0,   cue:'Feet shoulder-width · below parallel · chest tall throughout' },
-  { id:'bw_lunge',    name:'Bodyweight Lunge',        eq:['bodyweight'],                      muscles:['lower'],        type:'accessory',tags:['squat','quads'],          sets:3, reps:12, repMax:20, rest:60,  inc:0,   cue:'Step forward · back knee near floor · push through front heel' },
+  { id:'bw_lunge',    name:'Bodyweight Lunge',        eq:['bodyweight'],                      muscles:['lower'],        type:'accessory',tags:['squat','quads'],          sets:3, reps:12, repMax:20, rest:60,  inc:0,   cue:'Step forward · back knee near floor · drive through the whole front foot' },
   { id:'bw_bridge',   name:'Glute Bridge',            eq:['bodyweight'],                      muscles:['lower'],        type:'accessory',tags:['hinge','glutes'],         sets:3, reps:15, repMax:25, rest:45,  inc:0,   cue:'Drive hips to lockout · squeeze glutes · hold 1 second at top' },
   { id:'nordic',      name:'Nordic Hamstring Curl',   eq:['bodyweight','bench'],              muscles:['lower'],        type:'accessory',tags:['hinge','hamstrings'],     sets:3, reps:5,  repMax:10, rest:90,  inc:0,   cue:'Anchor feet · lower as slowly as possible · catch at bottom' },
   { id:'bw_sl_rdl',   name:'Single-Leg RDL (BW)',     eq:['bodyweight'],                      muscles:['lower'],        type:'accessory',tags:['hinge','hamstrings'],     sets:3, reps:10, repMax:15, rest:60,  inc:0,   cue:'Hip hinge · free leg back · maintain flat back throughout' },
@@ -75,30 +75,29 @@ const DB = [
   // ── INTERMEDIATE UPPER ──
   { id:'incl_bb',     name:'Incline Bench Press',     eq:['barbell','bench','squat_rack'],    muscles:['upper'],        type:'compound', tags:['push','chest'],           sets:4, reps:6,  repMax:10, rest:150, inc:5,   cue:'30-45° incline · bar to upper chest · full lockout at top' },
   { id:'incl_db',     name:'Incline DB Press',        eq:['dumbbell','bench'],                muscles:['upper'],        type:'accessory',tags:['push','chest'],           sets:3, reps:10, repMax:14, rest:90,  inc:5,   cue:'30-45° incline · controlled descent · slight arc inward at top' },
-  { id:'decl_bb',     name:'Decline Bench Press',     eq:['barbell','bench'],                 muscles:['upper'],        type:'accessory',tags:['push','chest'],           sets:3, reps:8,  repMax:12, rest:120, inc:5,   cue:'15-30° decline · bar to lower chest · no excessive elbow flare' },
-  { id:'lat_raise',   name:'Lateral Raise',           eq:['dumbbell'],                        muscles:['upper'],        type:'accessory',tags:['push','shoulders'],       sets:3, reps:12, repMax:20, rest:60,  inc:2.5, cue:'Slight elbow bend · raise to shoulder height · 3s lower' },
+  { id:'decl_bb',     name:'Decline Bench Press',     eq:['barbell','bench'],                 muscles:['upper'],        type:'accessory',tags:['push','chest'],           sets:3, reps:8,  repMax:12, rest:120, inc:5,   cue:'15-30° decline · bar to lower chest · elbows tucked ~45°' },
+  { id:'lat_raise',   name:'Lateral Raise',           eq:['dumbbell'],                        muscles:['upper'],        type:'accessory',tags:['push','shoulders'],       sets:3, reps:12, repMax:20, rest:60,  inc:2.5, cue:'Lead with the elbows · raise to shoulder height · slow 3s lower' },
   { id:'cbl_lat',     name:'Cable Lateral Raise',     eq:['cable'],                           muscles:['upper'],        type:'accessory',tags:['push','shoulders'],       sets:3, reps:15, repMax:20, rest:60,  inc:2.5, cue:'Cable at hip · raise across body · control the descent' },
   { id:'db_tri_ext',  name:'DB Tricep Extension',     eq:['dumbbell'],                        muscles:['upper'],        type:'accessory',tags:['push','triceps'],         sets:3, reps:12, repMax:15, rest:60,  inc:2.5, cue:'Elbows fixed beside head · lower behind head · full lockout' },
   { id:'cbl_tri_oh',  name:'Cable Overhead Tri Ext',  eq:['cable'],                           muscles:['upper'],        type:'accessory',tags:['push','triceps'],         sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Rope at high pulley · elbows fixed · extend fully forward' },
   { id:'cgbp',        name:'Close-Grip Bench Press',  eq:['barbell','bench'],                 muscles:['upper'],        type:'compound', tags:['push','triceps'],         sets:3, reps:8,  repMax:12, rest:120, inc:5,   cue:'Hands inside shoulder-width · elbows tucked · tricep focus' },
   { id:'skull_crush', name:'Skull Crusher',           eq:['barbell','bench'],                 muscles:['upper'],        type:'accessory',tags:['push','triceps'],         sets:3, reps:10, repMax:14, rest:60,  inc:5,   cue:'Bar to forehead · elbows vertical · full extension at top' },
-  { id:'lat_raise2',  name:'Cable Lateral Raise',     eq:['cable'],                           muscles:['upper'],        type:'accessory',tags:['push','shoulders'],       sets:3, reps:15, repMax:20, rest:60,  inc:2.5, cue:'D-handle · slight forward lean · raise to ear height' },
   { id:'hammer_curl', name:'Hammer Curl',             eq:['dumbbell'],                        muscles:['upper'],        type:'accessory',tags:['pull','biceps'],          sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Neutral grip throughout · curl to shoulder · controlled lower' },
-  { id:'preacher',    name:'Preacher Curl',           eq:['barbell','bench'],                 muscles:['upper'],        type:'accessory',tags:['pull','biceps'],          sets:3, reps:10, repMax:14, rest:60,  inc:5,   cue:'Upper arm against pad · full extension at bottom · no swing' },
+  { id:'preacher',    name:'Preacher Curl',           eq:['barbell','bench'],                 muscles:['upper'],        type:'accessory',tags:['pull','biceps'],          sets:3, reps:10, repMax:14, rest:60,  inc:5,   cue:'Upper arms glued to the pad · full stretch at bottom · squeeze at the top' },
   { id:'incl_db_row', name:'Incline DB Row',          eq:['dumbbell','bench'],                muscles:['upper'],        type:'accessory',tags:['pull','back'],            sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Chest on 45° bench · elbows drive back · full ROM each rep' },
   { id:'rear_delt',   name:'Rear Delt Fly',           eq:['dumbbell','bench'],                muscles:['upper'],        type:'accessory',tags:['pull','shoulders'],       sets:3, reps:15, repMax:20, rest:60,  inc:2.5, cue:'Slight elbow bend · raise laterally · squeeze rear delt at top' },
   { id:'cbl_rear',    name:'Cable Rear Delt Fly',     eq:['cable'],                           muscles:['upper'],        type:'accessory',tags:['pull','shoulders'],       sets:3, reps:15, repMax:20, rest:60,  inc:2.5, cue:'Cross-cable · pull to sides · external rotation at finish' },
-  { id:'cbl_curl',    name:'Cable Bicep Curl',        eq:['cable'],                           muscles:['upper'],        type:'accessory',tags:['pull','biceps'],          sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Straight bar · elbows fixed · supinate at peak contraction' },
+  { id:'cbl_curl',    name:'Cable Bicep Curl',        eq:['cable'],                           muscles:['upper'],        type:'accessory',tags:['pull','biceps'],          sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Straight bar · elbows pinned · squeeze biceps hard at the top' },
   // ── INTERMEDIATE LOWER ──
   { id:'bulg_split',  name:'Bulgarian Split Squat',   eq:['dumbbell','bench'],                muscles:['lower'],        type:'compound', tags:['squat','quads'],          sets:3, reps:8,  repMax:12, rest:120, inc:5,   cue:'Rear foot elevated · front knee tracks toes · upright torso' },
-  { id:'box_squat',   name:'Box Squat',               eq:['barbell','squat_rack','bench'],    muscles:['lower','full'], type:'compound', tags:['squat','quads'],          sets:4, reps:5,  repMax:8,  rest:180, inc:10,  cue:'Sit back onto box · pause · explode up · no knee cave' },
-  { id:'sumo_dl',     name:'Sumo Deadlift',           eq:['barbell','bumper_plates'],         muscles:['lower','full'], type:'compound', tags:['hinge','hamstrings'],     sets:4, reps:5,  repMax:8,  rest:240, inc:10,  cue:'Wide stance · toes out · hips low · bar stays close to shins' },
+  { id:'box_squat',   name:'Box Squat',               eq:['barbell','squat_rack','bench'],    muscles:['lower','full'], type:'compound', tags:['squat','quads'],          sets:4, reps:5,  repMax:8,  rest:180, inc:10,  cue:'Sit back to the box · pause, stay tight · knees out, explode up' },
+  { id:'sumo_dl',     name:'Sumo Deadlift',           eq:['barbell','bumper_plates'],         muscles:['lower','full'], type:'compound', tags:['hinge','hamstrings'],     sets:4, reps:5,  repMax:8,  rest:240, inc:10,  cue:'Wide stance, toes out · spread the floor · chest up, bar close' },
   { id:'good_morn',   name:'Good Morning',            eq:['barbell','squat_rack'],            muscles:['lower'],        type:'compound', tags:['hinge','hamstrings'],     sets:3, reps:8,  repMax:12, rest:120, inc:5,   cue:'Bar on traps · hip hinge · slight knee bend · deep hamstring stretch' },
   { id:'sl_rdl',      name:'Single-Leg DB RDL',       eq:['dumbbell'],                        muscles:['lower'],        type:'accessory',tags:['hinge','hamstrings'],     sets:3, reps:10, repMax:14, rest:90,  inc:5,   cue:'Free leg extends back · hinge at hip · neutral spine' },
   { id:'step_up',     name:'DB Step-Up',              eq:['dumbbell','bench'],                muscles:['lower'],        type:'accessory',tags:['squat','quads'],          sets:3, reps:10, repMax:15, rest:90,  inc:5,   cue:'Full foot on bench · drive through heel · lock out at top' },
   { id:'db_leg_curl', name:'DB Leg Curl',             eq:['dumbbell','bench'],                muscles:['lower'],        type:'accessory',tags:['hinge','hamstrings'],     sets:3, reps:12, repMax:15, rest:60,  inc:5,   cue:'Prone on bench · DB between feet · curl to 90° · slow lower' },
   { id:'split_sq_bw', name:'Split Squat (BW)',        eq:['bodyweight'],                      muscles:['lower'],        type:'accessory',tags:['squat','quads'],          sets:3, reps:12, repMax:20, rest:60,  inc:0,   cue:'Static lunge position · back knee to floor · chest tall' },
-  { id:'band_pull', name:'Band Pull-Apart',        eq:[],                                  muscles:['recovery','upper'],type:'recovery',tags:['recovery','pull'],       sets:3, reps:20, repMax:25, rest:30,  inc:0,   cue:'Arms straight · squeeze scapula · controlled throughout' },
+  { id:'band_pull', name:'Band Pull-Apart',        eq:['band'],                               muscles:['recovery','upper'],type:'recovery',tags:['recovery','pull'],       sets:3, reps:20, repMax:25, rest:30,  inc:0,   cue:'Arms straight · squeeze scapula · controlled throughout' },
 ];
 
 const WARMUPS = {
@@ -181,6 +180,7 @@ const T = {bg:'#F7F5F0',sf:'#FFFFFF',el:'#EDEBE6',acc:'#1A1A1A',txt:'#1A1A1A',mu
 const EQ_GROUP1 = [
   {id:'barbell',label:'Barbell'},{id:'dumbbell',label:'Dumbbells'},
   {id:'bodyweight',label:'Body Weight'},{id:'cable',label:'Cable Machine'},
+  {id:'band',label:'Bands'},
 ];
 const EQ_GROUP2 = [
   {id:'none_fixture',label:'None'},{id:'bench',label:'Bench'},
@@ -202,48 +202,108 @@ const round25 = v => Math.round(v/2.5)*2.5;
 
 function getProgression(exId, exDef, history){
   if(!history||!history.length) return null;
-  const sessions = history.map(w=>(w.exercises||[]).find(e=>e.id===exId)).filter(e=>e&&e.loggedSets&&e.loggedSets.length>0);
+  const sessions = history.map(w=>{
+    const e=(w.exercises||[]).find(x=>x.id===exId);
+    return e&&e.loggedSets&&e.loggedSets.length?{date:w.date,sets:e.loggedSets}:null;
+  }).filter(Boolean);
   if(!sessions.length) return null;
   const last = sessions[sessions.length-1];
-  const lastWeight = (last.loggedSets[last.loggedSets.length-1]||{}).weight||0;
   const targetReps = exDef.reps, repMax = exDef.repMax||targetReps+3;
-  const totalSets = last.loggedSets.length, inc = exDef.inc==null?5:exDef.inc;
+  const inc = exDef.inc==null?5:exDef.inc;
   const setsNeeded = exDef.pSets||exDef.sets;
   const isBW = inc===0;
+  const daysSince = Math.floor((Date.now()-new Date(last.date).getTime())/86400000);
+  const longGap = daysSince>21;
 
   if(isBW){
-    const setsAtUpper = last.loggedSets.filter(s=>s.reps>=repMax).length;
-    const setsOnTarget = last.loggedSets.filter(s=>s.reps>=targetReps).length;
-    const bestReps = Math.max.apply(null,last.loggedSets.map(s=>s.reps||0));
+    const totalSets=last.sets.length;
+    const setsAtUpper = last.sets.filter(s=>s.reps>=repMax).length;
+    const setsOnTarget = last.sets.filter(s=>s.reps>=targetReps).length;
+    const bestReps = Math.max.apply(null,last.sets.map(s=>s.reps||0));
     let status,advice,citation,nextReps;
     if(setsAtUpper===totalSets&&totalSets>=setsNeeded){status='ADD_LOAD';nextReps=repMax;advice='All sets at '+repMax+'+ reps — add external load (weight vest / plate)';citation='Plotkin et al. 2022 · ACSM 2009';}
     else if(setsOnTarget>=Math.ceil(totalSets*0.75)){status='REP_PROG';nextReps=Math.min(repMax,bestReps+1);advice='Push toward '+repMax+' reps per set before adding load';citation='Plotkin et al. 2022';}
     else{status='REP_HOLD';nextReps=targetReps;advice="Match last session's reps — build consistency first";citation='Zourdos et al. 2016';}
-    const recentBest = sessions.slice(-3).map(s=>Math.max.apply(null,(s.loggedSets||[]).map(x=>x.reps)||[0]));
+    if(longGap&&(status==='ADD_LOAD'||status==='REP_PROG')){
+      status='REP_HOLD';nextReps=Math.min(bestReps,repMax);
+      advice=daysSince+' days since last session — match previous reps before pushing on';citation='Zourdos et al. 2016';
+    }
+    const recentBest = sessions.slice(-3).map(s=>Math.max.apply(null,s.sets.map(x=>x.reps||0)));
     let trend='FIRST SESSION';
     if(recentBest.length>=2){const d=recentBest[recentBest.length-1]-recentBest[0];trend=d>0?'IMPROVING':d===0?'STALLING':'PLATEAU';}
     else if(sessions.length===1)trend='BASELINE';
     return {isBodyweight:true,status,advice,citation,nextReps,nextWeight:null,est1RM:null,trend,sessions:sessions.length};
   }
 
-  const oneRMs = last.loggedSets.filter(s=>s.weight>0&&s.reps>0).map(s=>est1RM(s.weight,s.reps));
-  const avgRM = oneRMs.length?Math.round(oneRMs.reduce((a,v)=>a+v,0)/oneRMs.length):null;
-  const setsAtUpper = last.loggedSets.filter(s=>s.reps>=repMax).length;
-  const setsOnTarget = last.loggedSets.filter(s=>s.reps>=targetReps).length;
-  const bestLastReps = Math.max.apply(null,last.loggedSets.map(s=>s.reps||0));
+  // ── loaded ──
+  // Round to increments that exist for the implement (dumbbells come in 5s)
+  const rnd = v => { const step=(exDef.eq||[]).includes('dumbbell')?5:2.5; return Math.round(v/step)*step; };
+  const topWOf = s => Math.max.apply(null,s.sets.map(x=>x.weight||0));
+  const topRepsOf = s => { const tw=topWOf(s); return Math.max.apply(null,s.sets.filter(x=>(x.weight||0)===tw).map(x=>x.reps||0)); };
+  const bestRMOf = s => { const v=s.sets.filter(x=>x.weight>0&&x.reps>0).map(x=>est1RM(x.weight,x.reps)); return v.length?Math.max.apply(null,v):null; };
+
+  // Anchor everything to the top working weight; ramp-up and back-off sets don't
+  // dilute the verdict — only sets performed at that weight count as work sets.
+  const topWeight = topWOf(last);
+  const workSets = last.sets.filter(s=>(s.weight||0)===topWeight);
+  const totalWork = workSets.length;
+  const enough = totalWork>=Math.max(2,setsNeeded-1)||totalWork===last.sets.length;
+  const setsAtUpper = workSets.filter(s=>s.reps>=repMax).length;
+  const setsOnTarget = workSets.filter(s=>s.reps>=targetReps).length;
+  const bestLastReps = Math.max.apply(null,workSets.map(s=>s.reps||0));
+
   let nextWeight,nextReps,status,advice,citation;
-  if(setsAtUpper===totalSets&&totalSets>=setsNeeded){nextWeight=round25(lastWeight+inc);nextReps=targetReps;status='PROGRESS';advice='All sets ≥'+repMax+' reps — ready to add '+inc+' lbs';citation='Plotkin et al. 2022 · ACSM 2009';}
-  else if(setsOnTarget>=Math.ceil(totalSets*0.75)){nextWeight=lastWeight;nextReps=Math.min(repMax,bestLastReps+1);status='HOLD';advice='Accumulate reps toward '+repMax+' before adding load';citation='Plotkin et al. 2022';}
-  else if(setsOnTarget>=Math.ceil(totalSets*0.50)){nextWeight=lastWeight;nextReps=bestLastReps;status='HOLD';advice="Building rep consistency — match last session's reps";citation='Zourdos et al. 2016';}
-  else{nextWeight=round25(Math.max(lastWeight-inc,0));nextReps=targetReps;status='DELOAD';advice='Reps fell short — reduce load to restore quality';citation='Helms et al. 2018 · Kraemer & Ratamess 2004';}
-  const recentRMs = sessions.slice(-3).map(s=>{const ss=(s.loggedSets||[]).filter(x=>x.weight>0&&x.reps>0);return ss.length?ss.reduce((a,x)=>a+est1RM(x.weight,x.reps),0)/ss.length:null;}).filter(x=>x!=null);
+  if(setsAtUpper===totalWork&&enough){nextWeight=rnd(topWeight+inc);nextReps=targetReps;status='PROGRESS';advice='All working sets ≥'+repMax+' reps — ready to add '+inc+' lbs';citation='Plotkin et al. 2022 · ACSM 2009';}
+  else if(setsOnTarget>=Math.ceil(totalWork*0.75)){nextWeight=topWeight;nextReps=Math.min(repMax,bestLastReps+1);status='HOLD';advice='Accumulate reps toward '+repMax+' before adding load';citation='Plotkin et al. 2022';}
+  else if(setsOnTarget>=Math.ceil(totalWork*0.50)){nextWeight=topWeight;nextReps=bestLastReps;status='HOLD';advice="Building rep consistency — match last session's reps";citation='Zourdos et al. 2016';}
+  else{nextWeight=rnd(Math.max(topWeight-Math.max(inc,topWeight*0.10),0));nextReps=targetReps;status='DELOAD';advice='Reps fell short — reduce ~10% to restore quality';citation='Helms et al. 2018 · Kraemer & Ratamess 2004';}
+
+  // Stall: 3 straight sessions at the same top weight with no top-set rep gain
+  if(status==='HOLD'&&sessions.length>=3){
+    const r3=sessions.slice(-3);
+    if(r3.every(s=>topWOf(s)===topWeight)&&topRepsOf(r3[2])<=topRepsOf(r3[0])){
+      status='STALLED';
+      nextWeight=rnd(Math.max(topWeight*0.9,0)); nextReps=targetReps;
+      advice='3 sessions stuck at '+topWeight+' lbs — deload ~10% or swap in a variation';
+      citation='Helms et al. 2018 · Kraemer & Ratamess 2004';
+    }
+  }
+  // Long layoff: re-establish rather than progress
+  if(longGap&&status==='PROGRESS'){
+    status='HOLD'; nextWeight=daysSince>42?rnd(topWeight*0.9):topWeight; nextReps=targetReps;
+    advice=daysSince+' days since last session — re-establish at '+(daysSince>42?'~90% of ':'')+'your last working weight';
+    citation='Kraemer & Ratamess 2004';
+  }
+
+  // Trend from best-set e1RM per session — far less noisy than averaging all sets
+  const recentRMs = sessions.slice(-3).map(bestRMOf).filter(x=>x!=null);
+  const lastBest = bestRMOf(last);
   let trend='FIRST SESSION';
   if(recentRMs.length>=2){const pct=((recentRMs[recentRMs.length-1]-recentRMs[0])/recentRMs[0])*100;trend=pct>2?'IMPROVING':pct>0?'STALLING':'PLATEAU';}
   else if(sessions.length===1)trend='BASELINE';
-  return {isBodyweight:false,nextWeight,nextReps,status,advice,citation,est1RM:avgRM,trend,sessions:sessions.length};
+  return {isBodyweight:false,nextWeight,nextReps,status,advice,citation,est1RM:lastBest!=null?Math.round(lastBest):null,trend,sessions:sessions.length};
 }
 
-const SM={PROGRESS:{color:T.acc,icon:'↑',label:'PROGRESS'},HOLD:{color:T.warn,icon:'→',label:'HOLD'},DELOAD:{color:T.tmr,icon:'↓',label:'REDUCE'},ADD_LOAD:{color:T.acc,icon:'↑',label:'ADD LOAD'},REP_PROG:{color:T.warn,icon:'→',label:'ADD REPS'},REP_HOLD:{color:T.mut,icon:'→',label:'BUILD REPS'}};
+// Per-session series for an exercise: best-set est. 1RM (loaded) or best reps (bodyweight)
+function getSeries(exId,history){
+  const def=getExDef({id:exId}), isBW=(def.inc==null?5:def.inc)===0;
+  const sessions=(history||[]).map(w=>(w.exercises||[]).find(e=>e.id===exId)).filter(e=>e&&e.loggedSets&&e.loggedSets.length);
+  return sessions.map(s=>{
+    if(isBW) return Math.max.apply(null,s.loggedSets.map(x=>x.reps||0));
+    const ss=s.loggedSets.filter(x=>x.weight>0&&x.reps>0);
+    return ss.length?Math.max.apply(null,ss.map(x=>est1RM(x.weight,x.reps))):null;
+  }).filter(v=>v!=null&&isFinite(v));
+}
+function sparkline(vals,color,w,h2){
+  if(!vals||vals.length<2)return null;
+  w=w||110; h2=h2||26; const pad=3;
+  const min=Math.min.apply(null,vals), max=Math.max.apply(null,vals), rng=(max-min)||1;
+  const pts=vals.map((v,i)=>(pad+i*(w-2*pad)/(vals.length-1)).toFixed(1)+','+(h2-pad-(v-min)/rng*(h2-2*pad)).toFixed(1));
+  const last=pts[pts.length-1].split(',');
+  return h('div',{style:'line-height:0',html:`<svg width="${w}" height="${h2}" viewBox="0 0 ${w} ${h2}"><polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/><circle cx="${last[0]}" cy="${last[1]}" r="2.5" fill="${color}"/></svg>`});
+}
+
+const SM={PROGRESS:{color:T.acc,icon:'↑',label:'PROGRESS'},HOLD:{color:T.warn,icon:'→',label:'HOLD'},DELOAD:{color:T.tmr,icon:'↓',label:'REDUCE'},STALLED:{color:T.tmr,icon:'↻',label:'STALLED'},ADD_LOAD:{color:T.acc,icon:'↑',label:'ADD LOAD'},REP_PROG:{color:T.warn,icon:'→',label:'ADD REPS'},REP_HOLD:{color:T.mut,icon:'→',label:'BUILD REPS'}};
 const TM={IMPROVING:{color:T.ok},STALLING:{color:T.warn},PLATEAU:{color:T.tmr},'FIRST SESSION':{color:T.mut},BASELINE:{color:T.mut}};
 
 // ═══ GENERATION ═══
@@ -253,19 +313,74 @@ const hasEq=(ex,eq)=>ex.eq.length===0||ex.eq.every(e=>eq.includes(e));
 const fmtT=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
 const fmtDate=d=>new Date(d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 
+// Estimated time cost of an exercise in seconds: ~45s of work per set,
+// rest between sets (not after the last), plus ~60s setup/transition.
+// Long rests are discounted — in practice they get cut short (4min → ~3min),
+// so rest beyond 90s only counts at 60%.
+const effRest = r => r<=90 ? r : 90 + (r-90)*0.6;
+const exCost = ex => ex.sets*45 + Math.max(0,ex.sets-1)*effRest(ex.rest) + 60;
+
 function genWorkout(dur,target,equip){
   equip=equip.filter(x=>x!=='none_fixture');
-  const n=Math.max(3,{30:3,45:4,60:5}[dur]||5);
+  const budget=dur*60, MAX_EX=9;
   const all=DB.filter(e=>hasEq(e,equip));
-  if(target==='recovery') return toWkt(pickN(all.filter(e=>e.type==='recovery'),n+1),dur,target);
+  const sel=[]; let used=0;
+  // Reserve headroom so early expensive picks always leave room for a 3-exercise minimum
+  const CHEAP=315; // typical accessory cost
+  const fits=e=>used+exCost(e)<=budget-Math.max(0,2-sel.length)*CHEAP;
+  // Coverage-aware preference: within a slot, favor candidates that hit a sub-muscle
+  // not yet in the session, and deprioritize near-duplicates (identical tag sets).
+  // Still random within the preferred tier; falls back to the full pool once covered.
+  const subT=e=>e.tags.slice(1);
+  const sameTags=(a,b)=>a.tags.length===b.tags.length&&a.tags.every(t=>b.tags.includes(t));
+  const prefer=cand=>{
+    if(cand.length<2)return cand;
+    const cov=new Set(); sel.forEach(s=>subT(s).forEach(t=>cov.add(t)));
+    const noDup=cand.filter(e=>!sel.some(s=>sameTags(e,s)));
+    const t1=noDup.filter(e=>subT(e).some(t=>!cov.has(t)));
+    if(t1.length)return t1;
+    if(noDup.length)return noDup;
+    // Everything duplicates something — spread repeats across the least-represented tag set
+    const cnt=e=>sel.filter(s=>sameTags(e,s)).length;
+    const min=Math.min.apply(null,cand.map(cnt));
+    return cand.filter(e=>cnt(e)===min);
+  };
+  // add one exercise from src; force=true falls back to the cheapest option if nothing fits
+  const add=(src,force)=>{
+    const fresh=src.filter(e=>!sel.find(s=>s.id===e.id));
+    let cand=prefer(fresh.filter(fits));
+    if(!cand.length&&force&&fresh.length){
+      const min=Math.min.apply(null,fresh.map(exCost));
+      cand=fresh.filter(e=>exCost(e)===min);
+    }
+    const p=pickOne(cand);
+    if(p){sel.push(p);used+=exCost(p);return true;}
+    return false;
+  };
+  if(target==='recovery'){
+    const pool=all.filter(e=>e.type==='recovery');
+    for(let i=0;i<20&&sel.length<MAX_EX;i++){ if(!add(pool,sel.length<3)) break; }
+    return toWkt(sel,dur,target);
+  }
   const pool=all.filter(e=>e.type!=='recovery'&&(target==='full'||e.muscles.some(m=>m===target||m==='full')));
-  const sel=[];
-  const add=src=>{const p=pickOne(src.filter(e=>!sel.find(s=>s&&s.id===e.id)));if(p)sel.push(p);};
-  if(target==='upper'){add(pool.filter(e=>e.type==='compound'&&e.tags.includes('push')));add(pool.filter(e=>e.type==='compound'&&e.tags.includes('pull')));for(let i=0;sel.length<n&&i<14;i++)add(pool.filter(e=>e.type==='accessory'&&e.tags.includes(i%2===0?'pull':'push')));}
-  else if(target==='lower'){if(dur>=45)add(pool.filter(e=>e.type==='olympic'&&e.muscles.includes('lower')));add(pool.filter(e=>e.tags.includes('squat')&&e.type==='compound'));add(pool.filter(e=>e.tags.includes('hinge')&&(e.type==='compound'||e.type==='olympic')));for(let i=0;sel.length<n&&i<14;i++)add(pool.filter(e=>e.type==='accessory'));}
-  else{add(pool.filter(e=>e.type==='olympic'));['squat','hinge','push','pull'].forEach(tag=>{if(sel.length<n)add(pool.filter(e=>e.tags.includes(tag)&&e.type==='compound'));});for(let i=0;sel.length<n&&i<14;i++)add(pool.filter(e=>e.type==='accessory'));}
-  for(let i=0;sel.filter(Boolean).length<3&&i<20;i++)add(pool.filter(e=>!sel.find(s=>s&&s.id===e.id)));
-  return toWkt(sel.filter(Boolean).slice(0,Math.max(3,n)),dur,target);
+  if(target==='upper'){
+    add(pool.filter(e=>e.type==='compound'&&e.tags.includes('push')),true);
+    add(pool.filter(e=>e.type==='compound'&&e.tags.includes('pull')));
+    for(let i=0,miss=0;i<20&&miss<2&&sel.length<MAX_EX;i++){
+      if(add(pool.filter(e=>e.type==='accessory'&&e.tags.includes(i%2===0?'pull':'push'))))miss=0;else miss++;
+    }
+  } else if(target==='lower'){
+    if(dur>=45) add(pool.filter(e=>e.type==='olympic'&&e.muscles.includes('lower')));
+    add(pool.filter(e=>e.tags.includes('squat')&&e.type==='compound'),sel.length===0);
+    add(pool.filter(e=>e.tags.includes('hinge')&&(e.type==='compound'||e.type==='olympic')));
+    for(let i=0;i<14&&sel.length<MAX_EX;i++){ if(!add(pool.filter(e=>e.type==='accessory'))) break; }
+  } else {
+    add(pool.filter(e=>e.type==='olympic'),true);
+    ['squat','hinge','push','pull'].forEach(tag=>{ if(sel.length<MAX_EX) add(pool.filter(e=>e.tags.includes(tag)&&e.type==='compound')); });
+    for(let i=0;i<14&&sel.length<MAX_EX;i++){ if(!add(pool.filter(e=>e.type==='accessory'))) break; }
+  }
+  for(let i=0;sel.length<3&&i<20;i++) add(pool,true);
+  return toWkt(sel,dur,target);
 }
 function toWkt(exercises,dur,target){
   return {id:Date.now(),date:new Date().toISOString(),config:{dur,target},exercises:exercises.map(ex=>Object.assign({},ex,{pSets:ex.sets,pReps:ex.reps,loggedSets:[]}))};
@@ -277,10 +392,29 @@ const KEY='forge_v3';
 function loadSaved(){try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){return [];}}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state.saved));}catch(e){}}
 
+// In-progress workout survives refresh / tab eviction
+const ACTIVE_KEY='forge_active_v1';
+function persistActive(){
+  try{
+    if(!state.wkt)return;
+    localStorage.setItem(ACTIVE_KEY,JSON.stringify({wkt:state.wkt,exIdx:state.exIdx,elapsed:state.elapsed}));
+  }catch(e){}
+}
+function clearActive(){try{localStorage.removeItem(ACTIVE_KEY);}catch(e){}}
+function loadActive(){try{return JSON.parse(localStorage.getItem(ACTIVE_KEY)||'null');}catch(e){return null;}}
+function resumeActive(){
+  const a=loadActive(); if(!a||!a.wkt)return;
+  state.wkt=a.wkt; state.exIdx=a.exIdx||0;
+  state.elapsed=a.elapsed||0; state.startT=Date.now()-state.elapsed*1000;
+  navTo(state.exIdx); go('active');
+}
+function discardActive(){ clearActive(); render(); }
+
 // ═══ STATE ═══
 const state = {
   screen:'setup',
-  cfg:{dur:60,target:'upper',equip:['barbell','dumbbell','bodyweight','cable','bench','squat_rack','bumper_plates']},
+  cfg:{dur:60,target:'upper',equip:['barbell','dumbbell','bodyweight','cable','band','bench','squat_rack','bumper_plates']},
+  undo:null,
   wkt:null, exIdx:0, saved:loadSaved(),
   // active workout transient
   wIn:'', rIn:'', timer:{on:false,s:0,total:0}, elapsed:0, startT:0,
@@ -342,6 +476,21 @@ function Setup(){
     ]),
   ]);
   const body=h('div',{style:'padding:28px 24px 0;max-width:480px;margin:0 auto;box-sizing:border-box'});
+
+  // Resume banner — unfinished session found in storage
+  const act=loadActive();
+  if(act&&act.wkt){
+    const sets=(act.wkt.exercises||[]).reduce((a,e)=>a+((e.loggedSets||[]).length),0);
+    body.appendChild(h('div',{style:`background:${T.tmr}12;border:1px solid ${T.tmr}55;border-radius:12px;padding:14px 16px;margin-bottom:24px`},[
+      h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.tmr};margin-bottom:4px;font-weight:600`},'UNFINISHED WORKOUT'),
+      h('div',{style:`font-size:13px;color:${T.txt};margin-bottom:12px`},
+        act.wkt.config.target.toUpperCase()+' · '+act.wkt.config.dur+'MIN — '+sets+' set'+(sets===1?'':'s')+' logged, '+fmtT(act.elapsed||0)+' elapsed'),
+      h('div',{style:'display:flex;gap:8px'},[
+        h('button',{style:`flex:1;padding:11px;background:${T.acc};color:${T.bg};border:none;border-radius:10px;cursor:pointer;font-family:var(--disp);font-size:16px;font-weight:700`,onClick:resumeActive},'RESUME →'),
+        h('button',{style:`padding:11px 18px;background:${T.sf};border:1px solid ${T.bdr};color:${T.mut};border-radius:10px;cursor:pointer;font-family:var(--body);font-size:13px`,onClick:discardActive},'Discard'),
+      ]),
+    ]));
+  }
 
   // Duration
   body.appendChild(h('div',{style:'margin-bottom:28px'},[
@@ -405,6 +554,8 @@ function Setup(){
 function startWorkout(){
   state.wkt=genWorkout(state.cfg.dur,state.cfg.target,state.cfg.equip);
   state.exIdx=0;
+  state.elapsed=0;
+  persistActive();
   go('warmup');
 }
 
@@ -491,6 +642,7 @@ function navTo(idx){
   const isBW=(def.inc==null?5:def.inc)===0;
   state.wIn=isBW?'0':(prog?String(prog.nextWeight):'');
   state.rIn=prog&&prog.nextReps!=null?String(prog.nextReps):String(nex.pReps);
+  persistActive();
 }
 function Active(){
   if(!state.startT){ state.startT=Date.now(); state.elapsed=0; navTo(0); }
@@ -499,6 +651,7 @@ function Active(){
     if(state.screen!=='active'){clearInterval(tickInterval);return;}
     state.elapsed=Math.floor((Date.now()-state.startT)/1000);
     const el=document.getElementById('elapsed'); if(el)el.textContent=fmtT(state.elapsed);
+    if(state.elapsed>0&&state.elapsed%15===0)persistActive();
   },1000);
 
   const wkt=state.wkt, ex=wkt.exercises[state.exIdx], exDef=getExDef(ex);
@@ -529,7 +682,10 @@ function Active(){
 
   const main=h('div',{style:'flex:1;display:flex;flex-direction:column;overflow:hidden;max-width:480px;margin:0 auto;width:100%;box-sizing:border-box'});
   const fixedTop=h('div',{style:'flex-shrink:0;padding:20px 20px 0'});
-  fixedTop.appendChild(h('div',{style:'margin-bottom:4px'},h('span',{style:`background:${badge.bg};color:${badge.color};font-size:10px;padding:3px 9px;border-radius:4px;letter-spacing:1.5px;font-weight:600`},badge.label)));
+  fixedTop.appendChild(h('div',{style:'margin-bottom:4px;display:flex;justify-content:space-between;align-items:center'},[
+    h('span',{style:`background:${badge.bg};color:${badge.color};font-size:10px;padding:3px 9px;border-radius:4px;letter-spacing:1.5px;font-weight:600`},badge.label),
+    doneSets===0?h('button',{style:`background:${T.sf};border:1px solid ${T.bdr};color:${T.mut};padding:5px 14px;border-radius:14px;cursor:pointer;font-family:var(--body);font-size:11px;letter-spacing:1px`,onClick:swapExercise},'⇄ SWAP'):null,
+  ]));
   fixedTop.appendChild(h('div',{style:'font-family:var(--disp);font-size:36px;letter-spacing:.5px;line-height:1.02;margin-bottom:6px;font-weight:700'},ex.name));
   fixedTop.appendChild(h('div',{style:`font-size:12px;color:${T.mut};margin-bottom:20px;line-height:1.7;font-style:italic`},ex.cue));
   fixedTop.appendChild(h('div',{style:'display:flex;gap:6px;margin-bottom:14px'},Array.from({length:ex.pSets}).map((_,i)=>h('div',{style:`flex:1;height:5px;border-radius:3px;background:${i<doneSets?T.ok:i===doneSets?T.acc:T.bdr}`}))));
@@ -559,14 +715,17 @@ function Active(){
       ]),
     ]);
     card.appendChild(topRow);
+    const series=getSeries(ex.id,state.saved);
     if(!prog.isBodyweight&&prog.est1RM){
-      card.appendChild(h('div',{style:`border-top:1px solid ${T.bdr};padding-top:10px;display:flex;gap:16px;flex-wrap:wrap`},[
+      card.appendChild(h('div',{style:`border-top:1px solid ${T.bdr};padding-top:10px;display:flex;gap:16px;flex-wrap:wrap;align-items:center`},[
         statBox('EST. 1RM',prog.est1RM+' lbs'),statBox('SESSIONS',prog.sessions),statBox('1RM TREND',prog.trend,tm&&tm.color),
+        series.length>=2?h('div',{style:'margin-left:auto'},sparkline(series.slice(-8),sm.color)):null,
       ]));
     }
     if(prog.isBodyweight&&prog.sessions>=2){
-      card.appendChild(h('div',{style:`border-top:1px solid ${T.bdr};padding-top:10px;display:flex;gap:16px`},[
+      card.appendChild(h('div',{style:`border-top:1px solid ${T.bdr};padding-top:10px;display:flex;gap:16px;align-items:center`},[
         statBox('SESSIONS',prog.sessions),statBox('REP TREND',prog.trend,tm&&tm.color),
+        series.length>=2?h('div',{style:'margin-left:auto'},sparkline(series.slice(-8),sm.color)):null,
       ]));
     }
     fixedTop.appendChild(card);
@@ -639,7 +798,44 @@ function statBox(label,val,color){
     h('div',{style:`font-family:var(--mono);color:${color||T.txt};font-size:13px`},String(val)),
   ]);
 }
+// Swap the current exercise for an equipment-valid alternative with the same
+// role: same primary movement pattern + tier first, then progressively looser.
+function swapExercise(){
+  const wkt=state.wkt, ex=wkt.exercises[state.exIdx];
+  if(!wkt||ex.loggedSets.length)return;
+  const def=getExDef(ex);
+  const equip=state.cfg.equip.filter(x=>x!=='none_fixture');
+  const target=wkt.config.target;
+  const all=DB.filter(e=>hasEq(e,equip)&&e.id!==ex.id&&!wkt.exercises.find(s=>s.id===e.id));
+  let pool;
+  if(target==='recovery'){ pool=all.filter(e=>e.type==='recovery'); }
+  else{
+    const base=all.filter(e=>e.type!=='recovery'&&(target==='full'||e.muscles.some(m=>m===target||m==='full')));
+    const tag=def.tags[0];
+    pool=base.filter(e=>e.type===def.type&&e.tags.includes(tag));
+    if(!pool.length)pool=base.filter(e=>e.tags.includes(tag));
+    if(!pool.length)pool=base.filter(e=>e.type===def.type);
+    if(!pool.length)pool=base;
+  }
+  // Prefer a replacement that complements the rest of the session:
+  // uncovered sub-muscle first, then non-duplicate tag sets, then anything.
+  if(pool.length>1){
+    const others=wkt.exercises.filter((_,i)=>i!==state.exIdx);
+    const cov=new Set(); others.forEach(s=>(s.tags||[]).slice(1).forEach(t=>cov.add(t)));
+    const dup=(a,b)=>a.tags.length===b.tags.length&&a.tags.every(t=>b.tags.includes(t));
+    const noDup=pool.filter(e=>!others.some(s=>dup(e,s)));
+    const t1=noDup.filter(e=>e.tags.slice(1).some(t=>!cov.has(t)));
+    pool=t1.length?t1:(noDup.length?noDup:pool);
+  }
+  const p=pickOne(pool);
+  if(!p)return;
+  wkt.exercises[state.exIdx]=Object.assign({},p,{pSets:p.sets,pReps:p.reps,loggedSets:[]});
+  navTo(state.exIdx);
+  render();
+}
+
 function logSet(){
+  primeAudio(); // user gesture — unlock audio for the rest-complete cue
   const ex=state.wkt.exercises[state.exIdx];
   const loggedReps=parseInt(state.rIn)||0;
   ex.loggedSets.push({weight:parseFloat(state.wIn)||0,reps:loggedReps,ts:Date.now()});
@@ -651,19 +847,60 @@ function logSet(){
     if(loggedReps>=rMax) state.rIn=String(rMax);
     else if(loggedReps>=tgt) state.rIn=String(Math.min(rMax,loggedReps+1));
     else state.rIn=String(loggedReps);
+    persistActive();
   }
   render();
 }
+
+// ── Rest-complete cue: vibration (Android) + short beep (needs gesture-primed AudioContext) ──
+let audioCtx=null;
+function primeAudio(){
+  try{
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+  }catch(e){}
+}
+function restCue(){
+  try{ if(navigator.vibrate) navigator.vibrate([200,120,200]); }catch(e){}
+  try{
+    if(!audioCtx||audioCtx.state!=='running')return;
+    const beep=(t,f)=>{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.connect(g); g.connect(audioCtx.destination);
+      o.type='sine'; o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.3,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.28);
+      o.start(t); o.stop(t+0.3);
+    };
+    const now=audioCtx.currentTime;
+    beep(now,880); beep(now+0.35,880); beep(now+0.7,1174.66);
+  }catch(e){}
+}
+
+// Timestamp-based: survives iOS timer throttling / screen lock.
+// The interval only repaints — remaining time is always computed from endAt.
 function startRest(sec){
-  state.timer={on:true,s:sec,total:sec};
+  state.timer={on:true,s:sec,total:sec,endAt:Date.now()+sec*1000};
   if(restInterval)clearInterval(restInterval);
-  restInterval=setInterval(()=>{
-    if(state.timer.s<=1){state.timer={on:false,s:0,total:0};clearInterval(restInterval);render();return;}
-    state.timer.s--;
-    const se=document.getElementById('rest-secs'); if(se)se.textContent=fmtT(state.timer.s);
-    const pe=document.getElementById('rest-pct'); if(pe)pe.textContent=Math.round((state.timer.s/state.timer.total)*100)+'% remaining';
-    const ring=document.getElementById('rest-ring'); if(ring){const C=2*Math.PI*32;ring.setAttribute('stroke-dashoffset',C*(1-state.timer.s/state.timer.total));}
-  },1000);
+  restInterval=setInterval(tickRest,250);
+}
+function tickRest(){
+  if(!state.timer.on){clearInterval(restInterval);return;}
+  const s=Math.max(0,Math.ceil((state.timer.endAt-Date.now())/1000));
+  if(s<=0){
+    state.timer={on:false,s:0,total:0};
+    clearInterval(restInterval);
+    restCue();
+    render();
+    return;
+  }
+  if(s!==state.timer.s){
+    state.timer.s=s;
+    const se=document.getElementById('rest-secs'); if(se)se.textContent=fmtT(s);
+    const pe=document.getElementById('rest-pct'); if(pe)pe.textContent=Math.round((s/state.timer.total)*100)+'% remaining';
+    const ring=document.getElementById('rest-ring'); if(ring){const C=2*Math.PI*32;ring.setAttribute('stroke-dashoffset',C*(1-s/state.timer.total));}
+  }
 }
 function saveWorkout(){
   if(!state.wkt)return;
@@ -672,6 +909,7 @@ function saveWorkout(){
   state.timer={on:false,s:0,total:0};
   const done=Object.assign({},state.wkt,{endTime:Date.now(),elapsed:state.elapsed});
   state.saved=state.saved.concat([done]); persist();
+  clearActive();
   state.startT=0; state.elapsed=0;
   go('cooldown');
 }
@@ -693,7 +931,10 @@ function History(){
   ]));
   if(state.toast){
     const ok=state.toast.type==='ok';
-    wrap.appendChild(h('div',{style:`background:${(ok?T.ok:T.tmr)}18;border-bottom:1px solid ${(ok?T.ok:T.tmr)}44;padding:10px 20px;color:${ok?T.ok:T.tmr};font-size:13px;text-align:center`},state.toast.text));
+    wrap.appendChild(h('div',{style:`background:${(ok?T.ok:T.tmr)}18;border-bottom:1px solid ${(ok?T.ok:T.tmr)}44;padding:10px 20px;color:${ok?T.ok:T.tmr};font-size:13px;display:flex;align-items:center;justify-content:center;gap:14px`},[
+      h('span',null,state.toast.text),
+      state.toast.undo?h('button',{style:`background:${T.acc};color:${T.bg};border:none;padding:5px 16px;border-radius:7px;cursor:pointer;font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.5px`,onClick:undoDelete},'UNDO'):null,
+    ]));
   }
   if(sorted.length>0) wrap.appendChild(h('div',{style:`padding:12px 20px 0;max-width:480px;margin:0 auto;font-size:11px;color:${T.mut};text-align:right`},'swipe left to delete'));
 
@@ -729,7 +970,10 @@ function History(){
         det.appendChild(h('div',{style:'margin-bottom:14px'},[
           h('div',{style:'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px'},[
             h('div',{style:'font-size:13px;font-weight:500'},ex.name),
-            best?h('div',{style:`font-family:var(--mono);font-size:11px;color:${T.mut}`},'~'+best+' 1RM'):h('span'),
+            h('div',{style:'display:flex;align-items:center;gap:10px'},[
+              (function(){const s=getSeries(ex.id,state.saved);return s.length>=2?sparkline(s.slice(-8),T.acc,70,20):null;})(),
+              best?h('div',{style:`font-family:var(--mono);font-size:11px;color:${T.mut}`},'~'+best+' 1RM'):null,
+            ]),
           ]),
           h('div',{style:'display:flex;flex-wrap:wrap;gap:6px'},ex.loggedSets.length?ex.loggedSets.map(s=>h('div',{style:`background:${T.el};border-radius:6px;padding:4px 10px;font-size:12px;font-family:var(--mono);color:${T.ok}`},(s.weight>0?s.weight+'×'+s.reps:'BW×'+s.reps))):[h('span',{style:`font-size:12px;color:${T.mut}`},'No sets logged')]),
         ]));
@@ -753,8 +997,20 @@ function History(){
   return wrap;
 }
 
+// Single global mouse-drag handler — cards register themselves on mousedown,
+// so re-renders no longer pile up stale window listeners.
+let activeDrag=null;
+window.addEventListener('mousemove',e=>{
+  if(!activeDrag)return;
+  const dx=e.clientX-activeDrag.startX;
+  activeDrag.setX(Math.max(-82,Math.min(0,activeDrag.startOff+dx)),false);
+});
+window.addEventListener('mouseup',()=>{
+  if(!activeDrag)return;
+  const d=activeDrag; activeDrag=null; d.snap();
+});
 function attachSwipe(container,inner,id){
-  const W=82,TH=46; let startX=0,startOff=0,offset=0,dragging=false;
+  const W=82,TH=46; let startX=0,startOff=0,offset=0;
   const isOpen=()=>state.histOpen===id;
   if(isOpen()){ inner.style.transform='translateX(-'+W+'px)'; offset=-W; }
   const setX=(x,anim)=>{ inner.style.transition=anim?'transform .22s cubic-bezier(.25,1,.5,1)':'none'; inner.style.transform='translateX('+x+'px)'; offset=x; };
@@ -762,16 +1018,29 @@ function attachSwipe(container,inner,id){
   container.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;startOff=isOpen()?-W:0;inner.style.transition='none';},{passive:true});
   container.addEventListener('touchmove',e=>{const dx=e.touches[0].clientX-startX;setX(Math.max(-W,Math.min(0,startOff+dx)),false);},{passive:true});
   container.addEventListener('touchend',()=>snap());
-  container.addEventListener('mousedown',e=>{dragging=true;startX=e.clientX;startOff=isOpen()?-W:0;inner.style.transition='none';});
-  window.addEventListener('mousemove',e=>{if(!dragging)return;const dx=e.clientX-startX;setX(Math.max(-W,Math.min(0,startOff+dx)),false);});
-  window.addEventListener('mouseup',()=>{if(!dragging)return;dragging=false;snap();});
+  container.addEventListener('mousedown',e=>{ activeDrag={startX:e.clientX,startOff:isOpen()?-W:0,setX,snap}; inner.style.transition='none'; });
 }
 
 function deleteWorkout(idx){
+  state.undo={w:state.saved[idx],idx};
   state.saved=state.saved.filter((_,i)=>i!==idx);
-  state.histOpen=null; state.histExp=null; persist(); render();
+  state.histOpen=null; state.histExp=null; persist();
+  showToast('ok','Workout deleted',true);
 }
-function showToast(type,text){ state.toast={type,text}; render(); setTimeout(()=>{if(state.toast&&state.toast.text===text){state.toast=null;if(state.screen==='history')render();}},3500); }
+function undoDelete(){
+  if(!state.undo)return;
+  state.saved.splice(Math.min(state.undo.idx,state.saved.length),0,state.undo.w);
+  state.undo=null; state.toast=null; persist(); render();
+}
+function showToast(type,text,undo){
+  state.toast={type,text,undo:!!undo}; render();
+  setTimeout(()=>{
+    if(state.toast&&state.toast.text===text){
+      state.toast=null; if(undo)state.undo=null;
+      if(state.screen==='history')render();
+    }
+  },undo?6000:3500);
+}
 function csvCell(v){ v=(v==null?'':String(v)); return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
 function parseCSV(text){
   const rows=[]; let row=[],cell='',q=false;
