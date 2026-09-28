@@ -201,6 +201,7 @@ const TARGETS = [
   {id:'lower',label:'LOWER',sub:'Quads · Hams · Glutes'},
   {id:'full',label:'FULL BODY',sub:'Olympic · Compound'},
   {id:'recovery',label:'RECOVERY',sub:'Light · Mobility'},
+  {id:'gaps',label:'GAPS',sub:'From your progress report'},
 ];
 
 // ═══ 1RM + PROGRESSION ═══
@@ -372,6 +373,7 @@ function genWorkout(dur,target,equip){
     if(p){sel.push(p);used+=exCost(p);return true;}
     return false;
   };
+  if(target==='gaps') return genGaps(dur,equip,all);
   if(target==='recovery'){
     const pool=all.filter(e=>e.type==='recovery');
     for(let i=0;i<20&&sel.length<MAX_EX;i++){ if(!add(pool,sel.length<3)) break; }
@@ -396,6 +398,59 @@ function genWorkout(dur,target,equip){
   }
   for(let i=0;sel.length<3&&i<20;i++) add(pool,true);
   return toWkt(sel,dur,target,equip);
+}
+// What the Gaps target should train: the muscles furthest below the weekly set target
+// (last 4 weeks, or all time if that's empty) plus any push/pull imbalance to correct.
+function gapFocus(){
+  if(!state.saved.length) return null;
+  let r=buildReport(28); if(!r.win.length) r=buildReport(0);
+  const need={}; r.muscles.forEach(m=>need[m.id]=Math.max(0,SET_TARGET-m.weekly));
+  let focus=r.muscles.filter(m=>m.weekly<5);
+  if(focus.length<2) focus=r.muscles.filter(m=>m.weekly<SET_TARGET);
+  focus=focus.sort((a,b)=>a.weekly-b.weekly).slice(0,4);
+  const ratio=r.pat.push+r.pat.pull>=6?r.pat.push/Math.max(r.pat.pull,1):1;
+  return {muscles:focus.map(m=>m.id),labels:focus.map(m=>m.label),need,
+    bias:ratio>1.5?'pull':(r.pat.push>0&&ratio<0.67)?'push':null};
+}
+const gapCredit=(e,m)=>musclesOf(e).includes(m)?1:secondaryOf(e).includes(m)?0.5:0;
+function genGaps(dur,equip,all){
+  const g=gapFocus();
+  if(!g||!g.muscles.length) return toWkt([],dur,'gaps',equip);
+  const budget=dur*60, MAX_EX=9, CHEAP=315;
+  const need={}; g.muscles.forEach(m=>need[m]=Math.max(1,g.need[m]));
+  // Olympic lifts are skill work, not a way to patch a muscle gap
+  const pool=all.filter(e=>e.type!=='recovery'&&e.type!=='olympic'&&g.muscles.some(m=>gapCredit(e,m)>0));
+  const sameTags=(a,b)=>a.tags.length===b.tags.length&&a.tags.every(t=>b.tags.includes(t));
+  const sel=[]; let used=0;
+  // Weighted by remaining need; each pick halves that muscle's need so the session spreads across gaps
+  const score=e=>{
+    let v=0; g.muscles.forEach(m=>v+=gapCredit(e,m)*need[m]);
+    if(g.bias&&e.tags.includes(g.bias)) v*=1.3;
+    if(e.type==='compound'||e.type==='olympic') v*=1.1;
+    if(sel.some(x=>sameTags(x,e))) v*=0.5;
+    return v;
+  };
+  while(sel.length<MAX_EX){
+    const fits=e=>used+exCost(e)<=budget-Math.max(0,2-sel.length)*CHEAP;
+    const cand=pool.filter(e=>!sel.includes(e)&&fits(e)).map(e=>({e,v:score(e)})).filter(x=>x.v>0);
+    if(!cand.length) break;
+    const best=Math.max.apply(null,cand.map(x=>x.v));
+    const p=pickOne(cand.filter(x=>x.v>=best*0.85)).e;
+    sel.push(p); used+=exCost(p);
+    g.muscles.forEach(m=>{ const c=gapCredit(p,m); if(c) need[m]*=c===1?0.5:0.75; });
+  }
+  for(let i=0;sel.length<3&&i<5;i++){
+    const rest=pool.filter(e=>!sel.includes(e)); if(!rest.length) break;
+    const min=Math.min.apply(null,rest.map(exCost)), p=pickOne(rest.filter(e=>exCost(e)===min));
+    sel.push(p); used+=exCost(p);
+  }
+  const rank={olympic:0,compound:1,accessory:2};
+  sel.sort((a,b)=>rank[a.type]-rank[b.type]);
+  const up=sel.some(e=>e.muscles.includes('upper')), low=sel.some(e=>e.muscles.includes('lower'));
+  const w=toWkt(sel,dur,'gaps',equip);
+  w.config.muscles=g.muscles; w.config.focus=g.labels;
+  w.config.warm=up&&low?'full':low?'lower':'upper'; // which warmup/cooldown fits this session
+  return w;
 }
 function toWkt(exercises,dur,target,equip){
   return {id:Date.now(),date:new Date().toISOString(),config:{dur,target,equip},exercises:exercises.map(ex=>Object.assign({},ex,{pSets:ex.sets,pReps:ex.reps,loggedSets:[]}))};
@@ -543,13 +598,20 @@ function Setup(){
   // Target
   body.appendChild(h('div',{style:'margin-bottom:28px'},[
     h('div',{style:`font-size:10px;letter-spacing:3px;color:${T.mut};margin-bottom:12px`},'MUSCLE TARGET'),
-    h('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:8px'},TARGETS.map(t=>h('button',{
-      style:`padding:14px 16px;border:1px solid ${c.target===t.id?T.acc:T.bdr};background:${c.target===t.id?T.acc+'14':T.sf};color:${T.txt};border-radius:10px;cursor:pointer;font-family:var(--body);text-align:left`,
-      onClick:()=>{c.target=t.id;saveCfg();render();}
-    },[
-      h('div',{style:`font-family:var(--disp);font-size:22px;font-weight:700;color:${c.target===t.id?T.acc:T.txt}`},t.label),
-      h('div',{style:`font-size:11px;color:${T.mut};margin-top:3px`},t.sub),
-    ]))),
+    h('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:8px'},TARGETS.map(t=>{
+      const isGaps=t.id==='gaps', gf=isGaps?gapFocus():null, locked=isGaps&&!(gf&&gf.muscles.length);
+      const sub=!isGaps?t.sub:locked?(state.saved.length?'No gaps right now — nicely balanced':'Log a few workouts to unlock'):gf.labels.join(' · ')+(gf.bias?' · more '+gf.bias:'');
+      return h('button',{
+        style:`padding:14px 16px;border:1px solid ${c.target===t.id?T.acc:T.bdr};background:${c.target===t.id?T.acc+'14':T.sf};color:${T.txt};border-radius:10px;cursor:${locked?'not-allowed':'pointer'};font-family:var(--body);text-align:left;opacity:${locked?.55:1}${isGaps?';grid-column:1/-1':''}`,
+        onClick:()=>{ if(locked)return; c.target=t.id;saveCfg();render(); }
+      },[
+        h('div',{style:'display:flex;justify-content:space-between;align-items:baseline;gap:8px'},[
+          h('div',{style:`font-family:var(--disp);font-size:22px;font-weight:700;color:${c.target===t.id?T.acc:T.txt}`},t.label),
+          isGaps&&!locked?h('div',{style:`font-size:10px;letter-spacing:1.5px;color:${T.mut}`},'FROM REPORT CARD'):null,
+        ]),
+        h('div',{style:`font-size:11px;color:${isGaps&&!locked?T.txt:T.mut};margin-top:3px`},sub),
+      ]);
+    })),
   ]));
 
   // Implements
@@ -597,7 +659,10 @@ function Setup(){
 function startWorkout(){
   const wkt=genWorkout(state.cfg.dur,state.cfg.target,state.cfg.equip);
   if(!wkt.exercises.length){
-    state.genErr='No '+state.cfg.target+' exercises match this equipment — add an implement or fixture.';
+    const gf=state.cfg.target==='gaps'?gapFocus():null;
+    state.genErr=state.cfg.target==='gaps'&&!(gf&&gf.muscles.length)
+      ?'No gaps to target yet — log a few workouts first.'
+      :'No '+state.cfg.target+' exercises match this equipment — add an implement or fixture.';
     render(); return;
   }
   state.genErr=null;
@@ -610,7 +675,7 @@ function startWorkout(){
 
 // ═══ WARMUP / COOLDOWN ═══
 function WarmCool(phase){
-  const target=phase==='warmup'?state.cfg.target:(state.wkt?state.wkt.config.target:state.cfg.target);
+  const target=state.wkt?(state.wkt.config.warm||state.wkt.config.target):state.cfg.target;
   const steps=(phase==='warmup'?WARMUPS:COOLDOWNS)[target]||WARMUPS.upper;
   if(state.wc.phase!==phase){ state.wc={phase,idx:0,secs:steps[0].dur,paused:false,endAt:Date.now()+steps[0].dur*1000}; }
   // Like the rest timer, remaining time comes from endAt so a locked screen doesn't stall it
@@ -929,6 +994,14 @@ function swapExercise(){
   const all=DB.filter(e=>hasEq(e,equip)&&e.id!==ex.id&&!wkt.exercises.find(s=>s.id===e.id));
   let pool;
   if(target==='recovery'){ pool=all.filter(e=>e.type==='recovery'); }
+  else if(target==='gaps'){
+    // Same gap muscle as the current exercise first, then any gap muscle
+    const ms=wkt.config.muscles||[], base=all.filter(e=>e.type!=='recovery'&&e.type!=='olympic'), mine=musclesOf(def).filter(m=>ms.includes(m));
+    pool=base.filter(e=>musclesOf(e).some(m=>mine.includes(m)));
+    if(!pool.length)pool=base.filter(e=>ms.some(m=>gapCredit(e,m)>0));
+    // Never swap to something off-target — say so instead
+    if(!pool.length){ state.logErr='No other gap exercises available with this equipment'; render(); return; }
+  }
   else{
     const base=all.filter(e=>e.type!=='recovery'&&(target==='full'||e.muscles.some(m=>m===target||m==='full')));
     const tag=def.tags[0];
@@ -1213,7 +1286,8 @@ function buildReport(days){
     else if(pat.push>0&&r<0.67) gaps.push({sev:'warn',text:'Pulling '+(pat.pull/pat.push).toFixed(1)+'× more than pushing'});
   }
   const stale=[];
-  const lastOf=tg=>{ const w=all.filter(x=>x.config&&(x.config.target===tg||x.config.target==='full')).pop(); return w?Math.floor((now-tOf(w))/DAY):null; };
+  const regionOf=c=>c.target==='gaps'?(c.warm||'full'):c.target;
+  const lastOf=tg=>{ const w=all.filter(x=>x.config&&(regionOf(x.config)===tg||regionOf(x.config)==='full')).pop(); return w?Math.floor((now-tOf(w))/DAY):null; };
   [['upper','Upper body'],['lower','Lower body']].forEach(([tg,label])=>{
     const d=lastOf(tg);
     if(d==null) gaps.push({sev:'bad',text:label+' never trained'});
