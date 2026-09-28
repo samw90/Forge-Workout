@@ -334,6 +334,63 @@ const fmtDate=d=>new Date(d).toLocaleDateString('en-US',{weekday:'short',month:'
 // Long rests are discounted — in practice they get cut short (4min → ~3min),
 // so rest beyond 90s only counts at 60%.
 const effRest = r => r<=90 ? r : 90 + (r-90)*0.6;
+// ── Session order ──
+// Each exercise loads a set of resources: its muscles (primary 1, synergist ½) plus two
+// common limiters — grip and lower back. Ordering puts Olympic lifts, then heavy compounds,
+// first and arm isolation last; in between it picks whichever move's resources are freshest,
+// so nothing that needs a muscle comes right after something that fried it.
+// 3 = limiting (heavy pulls, hanging, cleans), 2 = sustained, 1 = light; unlisted = none.
+const GRIP={deadlift:3,sumo_dl:3,rdl:3,pwr_clean:3,hng_clean:3,c_jerk:3,pullup:3,chinup:3,hammer_curl:3,
+  db_rdl:2,sl_rdl:2,bb_row:2,db_row:2,incl_db_row:2,cbl_row:2,pulldown:2,inv_row:2,door_row:2,
+  lunge:2,step_up:2,bulg_split:2,bb_curl:2,db_curl:2,preacher:2,cbl_curl:2};
+const LOWBACK={deadlift:3,rdl:3,good_morn:3,sumo_dl:2,bb_row:2,bk_squat:2,box_squat:2,pwr_clean:2,hng_clean:2,c_jerk:2,db_rdl:2,
+  fr_squat:1,sl_rdl:1,pull_thru:1,push_press:1,ohp:1,inv_row:1};
+const gripOf=e=>GRIP[e.id]||0;
+const isArmIso=e=>e.type==='accessory'&&(e.tags||[]).some(t=>t==='biceps'||t==='triceps')&&!(e.tags||[]).some(t=>t==='chest'||t==='back');
+function loadOf(e){
+  const L={}; const add=(k,v)=>{ if(v>0) L[k]=Math.max(L[k]||0,v); };
+  musclesOf(e).forEach(m=>add(m,1)); secondaryOf(e).forEach(m=>add(m,0.5));
+  add('grip',gripOf(e)/3); add('lowback',(LOWBACK[e.id]||0)/3);
+  return L;
+}
+// Cost of running `seq` in order, starting from fatigue `start`: overlap with still-tired
+// resources, taxing grip/lower back ahead of a later lift that depends on it more, and
+// a mild push to get compounds done earlier.
+function seqCost(seq,start){
+  const f=Object.assign({},start), Ls=seq.map(loadOf); let c=0;
+  seq.forEach((e,i)=>{
+    const L=Ls[i];
+    for(const r in L) c+=(f[r]||0)*L[r];
+    ['grip','lowback'].forEach(r=>{ if(!L[r])return; const need=Math.max.apply(null,Ls.slice(i+1).map(x=>x[r]||0).concat(0)); if(need>L[r]) c+=2*L[r]*(need-L[r]); });
+    if(e.type==='compound') c+=0.3*i;
+    for(const r in f) f[r]*=0.5;                  // partial recovery per exercise
+    for(const r in L) f[r]=(f[r]||0)+L[r];
+  });
+  return {cost:c,fatigue:f};
+}
+function orderSession(sel){
+  // Blocks are fixed: power first, heavy compounds while fresh, isolation arms last.
+  // Within a block, start heaviest-first, then swap pairs while the session cost drops.
+  const block=e=>e.type==='olympic'?0:e.type==='compound'&&e.rest>=180?1:isArmIso(e)?3:2;
+  let fatigue={}; const out=[];
+  [0,1,2,3].forEach(b=>{
+    let seq=sel.filter(e=>block(e)===b).sort((x,y)=>y.rest-x.rest);
+    if(!seq.length) return;
+    let best=seqCost(seq,fatigue).cost, improved=true;
+    for(let it=0;improved&&it<60;it++){
+      improved=false;
+      for(let i=0;i<seq.length;i++) for(let j=i+1;j<seq.length;j++){
+        const t=seq.slice(); [t[i],t[j]]=[t[j],t[i]];
+        const c=seqCost(t,fatigue).cost;
+        if(c<best-1e-9){ best=c; seq=t; improved=true; }
+      }
+    }
+    fatigue=seqCost(seq,fatigue).fatigue;
+    out.push.apply(out,seq);
+  });
+  return out;
+}
+
 const exCost = ex => ex.sets*45 + Math.max(0,ex.sets-1)*effRest(ex.rest) + 60;
 
 function genWorkout(dur,target,equip){
@@ -397,7 +454,7 @@ function genWorkout(dur,target,equip){
     for(let i=0;i<14&&sel.length<MAX_EX;i++){ if(!add(pool.filter(e=>e.type==='accessory'))) break; }
   }
   for(let i=0;sel.length<3&&i<20;i++) add(pool,true);
-  return toWkt(sel,dur,target,equip);
+  return toWkt(orderSession(sel),dur,target,equip);
 }
 // What the Gaps target should train: the muscles furthest below the weekly set target
 // (last 4 weeks, or all time if that's empty) plus any push/pull imbalance to correct.
@@ -444,10 +501,9 @@ function genGaps(dur,equip,all){
     const min=Math.min.apply(null,rest.map(exCost)), p=pickOne(rest.filter(e=>exCost(e)===min));
     sel.push(p); used+=exCost(p);
   }
-  const rank={olympic:0,compound:1,accessory:2};
-  sel.sort((a,b)=>rank[a.type]-rank[b.type]);
+  const ordered=orderSession(sel);
   const up=sel.some(e=>e.muscles.includes('upper')), low=sel.some(e=>e.muscles.includes('lower'));
-  const w=toWkt(sel,dur,'gaps',equip);
+  const w=toWkt(ordered,dur,'gaps',equip);
   w.config.muscles=g.muscles; w.config.focus=g.labels;
   w.config.warm=up&&low?'full':low?'lower':'upper'; // which warmup/cooldown fits this session
   return w;
