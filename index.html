@@ -114,6 +114,11 @@ const DB = [
   { id:'scap_pu',     name:'Scapular Push-Up',        eq:['bodyweight'],                      muscles:['recovery','upper'],type:'recovery',tags:['recovery','shoulders'],  sets:2, reps:12, repMax:20, rest:30,  inc:0,   cue:'Arms locked · let chest sink between shoulder blades · push the floor away' },
   { id:'wall_slide',  name:'Wall Slide',              eq:['bodyweight'],                      muscles:['recovery','upper'],type:'recovery',tags:['recovery','pull'],       sets:2, reps:12, repMax:15, rest:30,  inc:0,   cue:'Back, head & forearms on wall · slide arms up without losing contact' },
   { id:'clamshell',   name:'Clamshell',               eq:['bodyweight'],                      muscles:['recovery','lower'],type:'recovery',tags:['recovery','hips'],       sets:2, reps:15, repMax:20, rest:30,  inc:0,   cue:'Side-lying, knees bent · feet together · open top knee without rolling hips' },
+  { id:'tempo_sq',    name:'Tempo Box Squat',         eq:['bodyweight','bench'],              muscles:['recovery','lower'],type:'recovery',tags:['recovery','squat'],      sets:2, reps:10, repMax:15, rest:30,  inc:0,   cue:'3s down to the bench · light touch · stand tall · knees track over toes' },
+  { id:'calf_raise',  name:'Slow Calf Raise',         eq:['bodyweight'],                      muscles:['recovery','lower'],type:'recovery',tags:['recovery','calves'],     sets:2, reps:15, repMax:20, rest:30,  inc:0,   cue:'2s up · pause at the top · 3s down to a full heel stretch' },
+  { id:'tib_raise',   name:'Tibialis Raise',          eq:['bodyweight'],                      muscles:['recovery','lower'],type:'recovery',tags:['recovery','ankles'],     sets:2, reps:15, repMax:25, rest:30,  inc:0,   cue:'Back against a wall, heels forward · lift toes toward shins · slow lower' },
+  { id:'chin_tuck',   name:'Chin Tuck',               eq:['bodyweight'],                      muscles:['recovery','upper'],type:'recovery',tags:['recovery','neck'],       sets:2, reps:10, repMax:15, rest:30,  inc:0,   cue:'Glide chin straight back, making a double chin · hold 3s · no tilting' },
+  { id:'wrist_curl',  name:'Light Wrist Curls',       eq:['dumbbell'],                        muscles:['recovery','upper'],type:'recovery',tags:['recovery','wrists'],     sets:2, reps:15, repMax:20, rest:30,  inc:2.5, cue:'Forearm on thigh · palm up then palm down · slow, full range, very light' },
   { id:'bw_gm',       name:'Bodyweight Good Morning', eq:['bodyweight'],                      muscles:['recovery','lower'],type:'recovery',tags:['recovery','hinge'],      sets:2, reps:15, repMax:20, rest:30,  inc:0,   cue:'Hands behind head · soft knees · hinge until hamstrings stretch · slow tempo' },
 ];
 
@@ -155,6 +160,46 @@ const COOLDOWNS = {
   ],
 };
 
+
+// ═══ RECOVERY ═══
+// Body areas for the recovery check-in, the movements that help each, and targeted stretches.
+const AREAS=[['neck','Neck'],['shoulders','Shoulders'],['upperback','Upper back'],['lowback','Lower back'],['chest','Chest'],
+  ['wrists','Elbows / wrists'],['hips','Hips'],['glutes','Glutes'],['hamstrings','Hamstrings'],['quads','Quads / knees'],['calves','Calves / ankles']];
+const RECOV_AREAS={ext_rot:['shoulders'],lt_fp:['shoulders','upperback','neck'],lt_rdl:['hamstrings','lowback','glutes'],hip_circ:['hips','glutes'],
+  band_pull:['upperback','shoulders','chest'],bird_dog:['lowback','glutes'],dead_bug:['lowback'],scap_pu:['shoulders','upperback','chest'],
+  wall_slide:['shoulders','upperback','neck'],clamshell:['hips','glutes'],bw_gm:['hamstrings','lowback'],tempo_sq:['quads','hips'],
+  calf_raise:['calves'],tib_raise:['calves','quads'],chin_tuck:['neck','upperback'],wrist_curl:['wrists']};
+const STRETCHES=[
+  {name:'Chin Tuck & Neck Side Stretch',dur:40,areas:['neck'],cue:'Tuck chin · ear toward shoulder · 20s each side'},
+  {name:'Upper Trap Stretch',dur:40,areas:['neck','upperback'],cue:'Hand behind back · tilt head away and slightly down · 20s each side'},
+  {name:'Doorframe Chest Stretch',dur:40,areas:['chest','shoulders'],cue:'Elbow at shoulder height on the frame · step through gently · 20s each side'},
+  {name:'Cross-Body Shoulder Stretch',dur:36,areas:['shoulders'],cue:'Pull arm across chest just below the elbow · 18s each side'},
+  {name:'Sleeper Stretch',dur:40,areas:['shoulders'],cue:'Lie on your side, elbow at 90° · press forearm toward the floor · 20s each'},
+  {name:'Thread the Needle',dur:40,areas:['upperback','shoulders'],cue:'On all fours · slide one arm under and across · rotate through the upper back'},
+  {name:'Open Book',dur:40,areas:['upperback','chest'],cue:'Side-lying, knees stacked · open top arm across to the floor behind you · follow with eyes'},
+  {name:'Cat-Cow',dur:40,areas:['lowback','upperback'],cue:'Slow cycles · round the whole spine, then arch · move with the breath'},
+  {name:"Child's Pose",dur:40,areas:['lowback','upperback','shoulders'],cue:'Hips to heels · arms long · breathe into the lower back'},
+  {name:'Supine Spinal Twist',dur:50,areas:['lowback','glutes'],cue:'Knee across the body · shoulders flat · 25s each side'},
+  {name:'Knees to Chest',dur:30,areas:['lowback'],cue:'Hug both knees in · gentle rock side to side'},
+  {name:'Wrist Flexor & Extensor Stretch',dur:40,areas:['wrists'],cue:'Arm straight · pull fingers back, then down · 10s each way, each hand'},
+  {name:'Prayer Stretch',dur:30,areas:['wrists'],cue:'Palms together at the chest · lower hands slowly until you feel the stretch'},
+  {name:'90/90 Hip Switch',dur:45,areas:['hips','glutes'],cue:'Sit with both knees at 90° · rotate knees side to side · tall chest'},
+  {name:'Hip Flexor Lunge Stretch',dur:40,areas:['hips','quads'],cue:'Back knee down · squeeze that glute · shift hips forward · 20s each'},
+  {name:'Pigeon / Figure-4',dur:50,areas:['glutes','hips'],cue:'Ankle over opposite knee · sink back · 25s each side'},
+  {name:'Supine Hamstring Stretch',dur:40,areas:['hamstrings'],cue:'On your back · straight leg up with a strap or towel · 20s each'},
+  {name:'Seated Forward Fold',dur:40,areas:['hamstrings','lowback'],cue:'Hinge from the hips · long spine · reach toward the feet'},
+  {name:'Standing Quad Stretch',dur:36,areas:['quads'],cue:'Heel to glute · knee points down · tuck the pelvis · 18s each'},
+  {name:'Couch Stretch',dur:50,areas:['quads','hips'],cue:'Back shin up a wall or couch · front foot forward · tall torso · 25s each'},
+  {name:'Calf Wall Stretch',dur:40,areas:['calves'],cue:'Hands on wall · back heel down · straight knee, then bent · 20s each'},
+  {name:'Kneeling Ankle Rocks',dur:40,areas:['calves','quads'],cue:'Half-kneeling · drive front knee over toes, heel down · slow rocks'},
+];
+const RELAX=[
+  {name:'Legs Up the Wall',dur:60,cue:'Hips near the wall · arms relaxed — calms the nervous system'},
+  {name:'Diaphragmatic Breathing',dur:60,cue:'Hand on belly · 4s in · 6s out · let the shoulders drop'},
+];
+// Muscle → body areas, for suggesting check-in answers from recent training
+const MUSCLE_AREAS={chest:['chest'],back:['upperback'],shoulders:['shoulders'],biceps:['wrists'],triceps:['wrists'],quads:['quads'],hamstrings:['hamstrings','lowback'],glutes:['glutes','hips']};
+const FEEL=[['fresh','Fresh','a bit stiff'],['beat','Beat up','sore'],['wrecked','Wrecked','very sore / tired']];
 
 // ═══ THEME (CHALK) ═══
 const T = {bg:'#F7F5F0',sf:'#FFFFFF',el:'#EDEBE6',acc:'#1A1A1A',txt:'#1A1A1A',mut:'#9A9690',ok:'#2D7A4F',tmr:'#B85C00',warn:'#B85C00',bad:'#B3261E',bdr:'#E0DDD7'};
@@ -417,11 +462,7 @@ function genWorkout(dur,target,equip){
   };
   if(target==='gaps') return genGaps(dur,equip,all);
   if(target==='today') return genToday(dur,equip,all);
-  if(target==='recovery'){
-    const pool=all.filter(e=>e.type==='recovery');
-    for(let i=0;i<20&&sel.length<MAX_EX;i++){ if(!add(pool,sel.length<3)) break; }
-    return toWkt(sel,dur,target,equip);
-  }
+  if(target==='recovery') return genRecovery(dur,equip,all);
   const pool=all.filter(e=>e.type!=='recovery'&&(target==='full'||e.muscles.some(m=>m===target||m==='full')));
   if(target==='upper'){
     add(pool.filter(e=>e.type==='compound'&&e.tags.includes('push')),true);
@@ -614,6 +655,60 @@ function genToday(dur,equip,all){
 }
 // Short label for a workout's config, e.g. "TODAY · UPPER · 45MIN"
 const wktLabel=c=>(c.target==='today'?'TODAY · '+String(c.region||'').toUpperCase():String(c.target).toUpperCase())+' · '+c.dur+'MIN';
+// What the recovery check-in suggests when you don't answer: areas from muscles that are
+// still recovering (or were trained in the last ~2 days), and a feel from overall readiness.
+function recoverySuggestion(){
+  if(!state.saved.length) return {areas:['hips','upperback','hamstrings','shoulders'],feel:'fresh',why:'No history yet — general full-body reset'};
+  const p=planToday(), M=Object.values(p.M);
+  const sore=M.filter(m=>m.ready<0.8||(m.days!=null&&m.days<2)).sort((a,b)=>a.ready-b.ready);
+  const areas=[]; sore.forEach(m=>(MUSCLE_AREAS[m.id]||[]).forEach(a=>{ if(!areas.includes(a)) areas.push(a); }));
+  const low=Math.min.apply(null,M.map(m=>m.ready));
+  const feel=low<0.4?'wrecked':low<0.75?'beat':'fresh';
+  return {areas:areas.slice(0,4).length?areas.slice(0,4):['hips','upperback'],feel,
+    why:sore.length?'From recent sessions: '+sore.slice(0,3).map(m=>m.label.toLowerCase()).join(', ')+' still recovering':'Everything is fairly recovered — general reset'};
+}
+// Recovery = light movements for the chosen areas (logged), then a guided stretch routine
+// for the same areas (runs after you save). How you feel sets the split.
+function genRecovery(dur,equip,all){
+  const sug=recoverySuggestion(), rc=state.recov||{};
+  const areas=rc.areas&&rc.areas.length?rc.areas:sug.areas, feel=rc.feel||sug.feel;
+  const budget=dur*60, stretchFrac={fresh:0.35,beat:0.5,wrecked:0.7}[feel];
+  let moveBudget=budget*(1-stretchFrac);
+  const hits=e=>(RECOV_AREAS[e.id]||[]).filter(a=>areas.includes(a)).length;
+  const pool=all.filter(e=>e.type==='recovery').map(e=>feel==='wrecked'?Object.assign({},e,{sets:2}):e);
+  const sel=[]; let used=0;
+  // Round-robin across the chosen areas so each gets a movement, then fill with best matches
+  const covered=new Set();
+  for(let pass=0;pass<2&&sel.length<6;pass++){
+    pool.slice().sort((a,b)=>hits(b)-hits(a)).forEach(e=>{
+      if(sel.length>=6||sel.includes(e)||used+exCost(e)>moveBudget) return;
+      const mine=(RECOV_AREAS[e.id]||[]).filter(a=>areas.includes(a));
+      if(pass===0&&(!mine.length||mine.every(a=>covered.has(a)))) return;
+      if(pass===1&&!mine.length&&sel.length>=2) return;
+      sel.push(e); used+=exCost(e); mine.forEach(a=>covered.add(a));
+    });
+  }
+  // Use the rest of the movement time on a 3rd set (not when wrecked)
+  const setCost=e=>45+effRest(e.rest);
+  if(feel!=='wrecked') sel.forEach((e,i)=>{ if(e.sets<3&&used+setCost(e)<=moveBudget){ sel[i]=Object.assign({},e,{sets:3}); used+=setCost(e); } });
+  // Stretches: everything the movements didn't use goes to the routine
+  let sLeft=budget-used; const stretches=[];
+  const cands=STRETCHES.map(x=>({x,n:x.areas.filter(a=>areas.includes(a)).length})).filter(c=>c.n>0).sort((a,b)=>b.n-a.n);
+  const done=new Set();
+  const take=x=>{ if(x.dur<=sLeft&&!stretches.includes(x)){ stretches.push(x); sLeft-=x.dur; x.areas&&x.areas.forEach(a=>done.add(a)); } };
+  areas.forEach(a=>{ const c=cands.find(c=>c.x.areas.includes(a)&&!stretches.includes(c.x)); if(c) take(c.x); });
+  // the rest of the chosen-area stretches, then general ones, keeping room for a calm finish
+  const relaxDur=RELAX.reduce((a,x)=>a+x.dur,0);
+  cands.forEach(c=>{ if(sLeft-c.x.dur>=relaxDur) take(c.x); });
+  STRETCHES.forEach(x=>{ if(sLeft-x.dur>=relaxDur) take(x); });
+  RELAX.forEach(take);
+  // Still short of the time → hold everything longer (up to 2×)
+  const total=stretches.reduce((a,x)=>a+x.dur,0), scale=Math.min(2,total?(total+sLeft)/total:1);
+  const wk=toWkt(sel,dur,'recovery',equip);
+  Object.assign(wk.config,{areas,feel,stretches:stretches.map(x=>({name:x.name,dur:Math.round(x.dur*scale/5)*5,cue:x.cue}))});
+  state.recov=null;   // answers are for this session only
+  return wk;
+}
 function toWkt(exercises,dur,target,equip){
   return {id:Date.now(),date:new Date().toISOString(),config:{dur,target,equip},exercises:exercises.map(ex=>Object.assign({},ex,{pSets:ex.sets,pReps:ex.reps,loggedSets:[]}))};
 }
@@ -788,6 +883,8 @@ function Setup(){
     })),
   ]));
 
+  if(c.target==='recovery') body.appendChild(RecoveryCheckin());
+
   // Implements
   const g1=h('div',{style:'display:flex;flex-wrap:wrap;gap:8px'},EQ_GROUP1.map(e=>{
     const on=c.equip.includes(e.id), isLast=EQ_GROUP1.filter(x=>c.equip.includes(x.id)).length===1&&on;
@@ -830,6 +927,31 @@ function Setup(){
   return wrap;
 }
 
+function RecoveryCheckin(){
+  const rc=state.recov||(state.recov={areas:[],feel:null});
+  const sug=recoverySuggestion(), answered=rc.areas.length>0;
+  const chip=(label,on,sugg,onClick)=>h('button',{style:`padding:7px 13px;border-radius:20px;cursor:pointer;font-family:var(--body);font-size:12px;border:1px ${sugg&&!on?'dashed':'solid'} ${on?T.ok:sugg?T.ok+'99':T.bdr};background:${on?T.ok+'22':T.sf};color:${on?T.ok:sugg?T.ok:T.mut}`,onClick},(on?'✓ ':'')+label);
+  return h('div',{style:`background:${T.sf};border:1px solid ${T.bdr};border-radius:12px;padding:14px 16px;margin:-14px 0 28px`},[
+    h('div',{style:'display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px'},[
+      h('div',{style:'font-size:10px;letter-spacing:2.5px;font-weight:600'},'QUICK CHECK-IN'),
+      h('div',{style:`font-size:10px;color:${T.mut}`},'optional'),
+    ]),
+    h('div',{style:`font-size:11px;color:${T.mut};margin-bottom:12px`},answered?'Using your answers':sug.why+' — dashed = suggested'),
+    h('div',{style:`font-size:12px;margin-bottom:8px`},'What’s sore or tight?'),
+    h('div',{style:'display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px'},AREAS.map(([id,label])=>{
+      const on=rc.areas.includes(id), sugg=!answered&&sug.areas.includes(id);
+      return chip(label,on,sugg,()=>{ rc.areas=on?rc.areas.filter(a=>a!==id):rc.areas.concat(id); render(); });
+    })),
+    h('div',{style:`font-size:12px;margin-bottom:8px`},'How do you feel?'),
+    h('div',{style:'display:flex;gap:6px'},FEEL.map(([id,label,sub])=>{
+      const on=rc.feel===id, sugg=!rc.feel&&sug.feel===id;
+      return h('button',{style:`flex:1;padding:8px 4px;border-radius:10px;cursor:pointer;font-family:var(--body);text-align:center;border:1px ${sugg&&!on?'dashed':'solid'} ${on?T.ok:sugg?T.ok+'99':T.bdr};background:${on?T.ok+'22':T.sf};color:${on||sugg?T.ok:T.txt}`,onClick:()=>{ rc.feel=on?null:id; render(); }},[
+        h('div',{style:'font-size:13px;font-weight:600'},label),
+        h('div',{style:`font-size:10px;color:${T.mut};margin-top:1px`},sub),
+      ]);
+    })),
+  ]);
+}
 function TodayCard(c){
   const p=planToday(), on=c.target==='today';
   return h('button',{
@@ -865,7 +987,8 @@ function startWorkout(){
 // ═══ WARMUP / COOLDOWN ═══
 function WarmCool(phase){
   const target=state.wkt?(state.wkt.config.warm||state.wkt.config.target):state.cfg.target;
-  const steps=(COOLDOWNS[target]||COOLDOWNS.upper);
+  const custom=state.wkt&&state.wkt.config.stretches&&state.wkt.config.stretches.length?state.wkt.config.stretches:null;
+  const steps=custom||COOLDOWNS[target]||COOLDOWNS.upper;
   if(state.wc.phase!==phase){ state.wc={phase,idx:0,secs:steps[0].dur,paused:false,endAt:Date.now()+steps[0].dur*1000}; }
   // Like the rest timer, remaining time comes from endAt so a locked screen doesn't stall it
   const setStep=i=>{ state.wc.idx=i; state.wc.secs=steps[i].dur; state.wc.endAt=Date.now()+steps[i].dur*1000; };
@@ -895,8 +1018,8 @@ function WarmCool(phase){
   const wrap=h('div',{style:`min-height:100vh;background:${T.bg};color:${T.txt};font-family:var(--body);display:flex;flex-direction:column`});
   wrap.appendChild(h('div',{style:`background:${T.sf};border-bottom:1px solid ${T.bdr};padding:14px 20px;display:flex;justify-content:space-between;align-items:center`},[
     h('div',null,[
-      h('div',{style:`font-family:var(--disp);font-size:26px;letter-spacing:2px;color:${accent};font-weight:700`},'COOL DOWN'),
-      h('div',{style:`font-size:10px;color:${T.mut};letter-spacing:2px;margin-top:2px`},Math.round(totalDur/60)+' MIN · NOT COUNTED IN WORKOUT TIME'),
+      h('div',{style:`font-family:var(--disp);font-size:26px;letter-spacing:2px;color:${accent};font-weight:700`},custom?'STRETCH':'COOL DOWN'),
+      h('div',{style:`font-size:10px;color:${T.mut};letter-spacing:2px;margin-top:2px`},Math.round(totalDur/60)+' MIN · '+(custom?'PART OF YOUR RECOVERY SESSION':'NOT COUNTED IN WORKOUT TIME')),
     ]),
     h('button',{style:`background:${T.el};border:1px solid ${T.bdr};color:${T.mut};padding:9px 16px;border-radius:10px;cursor:pointer;font-family:var(--body);font-size:12px`,onClick:()=>finishWC(phase)},'SKIP ALL'),
   ]));
@@ -906,8 +1029,10 @@ function WarmCool(phase){
   wrap.appendChild(h('div',{style:'display:flex;gap:6px;padding:14px 20px 0;justify-content:center'},steps.map((_,i)=>h('div',{style:`width:${i===wc.idx?20:8}px;height:8px;border-radius:4px;background:${i<wc.idx?accent:i===wc.idx?accent:T.bdr};opacity:${i<wc.idx?.5:1};cursor:pointer`,onClick:()=>{setStep(i);render();}}))));
 
   const main=h('div',{style:'flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 28px;max-width:420px;margin:0 auto;width:100%;box-sizing:border-box'});
+  const pic=Picto(PICTO_BY_NAME[step.name],210);
+  if(pic){ pic.style.marginBottom='18px'; main.appendChild(pic); }
   const R=60, C=2*Math.PI*R;
-  main.appendChild(h('div',{style:'position:relative;margin-bottom:28px'},[
+  main.appendChild(h('div',{style:`position:relative;margin-bottom:${pic?20:28}px`},[
     h('div',{html:`<svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="70" r="60" fill="none" stroke="${T.bdr}" stroke-width="6"/><circle id="wc-ring" cx="70" cy="70" r="60" fill="none" stroke="${accent}" stroke-width="6" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-wc.secs/step.dur)}" stroke-linecap="round" transform="rotate(-90 70 70)" style="transition:stroke-dashoffset 1s linear"/></svg>`}),
     h('div',{style:'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center'},[
       h('div',{id:'wc-secs',style:`font-family:var(--mono);font-size:36px;color:${T.txt};line-height:1`},fmtT(wc.secs)),
@@ -928,7 +1053,7 @@ function WarmCool(phase){
     wrap.appendChild(h('div',{style:'padding:0 20px 24px;max-width:420px;margin:0 auto;width:100%;box-sizing:border-box'},[
       h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:10px`},'UP NEXT'),
       ...steps.slice(wc.idx+1,wc.idx+3).map(s=>h('div',{style:`display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:${T.sf};border:1px solid ${T.bdr};border-radius:8px;margin-bottom:6px`},[
-        h('span',{style:`font-size:13px;color:${T.mut}`},s.name),
+        h('span',{style:`display:flex;align-items:center;gap:10px;font-size:13px;color:${T.mut}`},[Picto(PICTO_BY_NAME[s.name],44),s.name]),
         h('span',{style:`font-family:var(--mono);font-size:12px;color:${T.mut}`},fmtT(s.dur)),
       ])),
     ]));
@@ -1002,8 +1127,17 @@ function Active(){
     h('span',{style:`background:${badge.bg};color:${badge.color};font-size:10px;padding:3px 9px;border-radius:4px;letter-spacing:1.5px;font-weight:600`},badge.label),
     doneSets===0?h('button',{style:`background:${T.sf};border:1px solid ${T.bdr};color:${T.mut};padding:5px 14px;border-radius:14px;cursor:pointer;font-family:var(--body);font-size:11px;letter-spacing:1px`,onClick:swapExercise},'⇄ SWAP'):null,
   ]));
-  fixedTop.appendChild(h('div',{style:'font-family:var(--disp);font-size:36px;letter-spacing:.5px;line-height:1.02;margin-bottom:6px;font-weight:700'},ex.name));
-  fixedTop.appendChild(h('div',{style:`font-size:12px;color:${T.mut};margin-bottom:20px;line-height:1.7;font-style:italic`},ex.cue));
+  const titleEls=[
+    h('div',{style:'font-family:var(--disp);font-size:36px;letter-spacing:.5px;line-height:1.02;margin-bottom:6px;font-weight:700'},ex.name),
+    h('div',{style:`font-size:12px;color:${T.mut};margin-bottom:20px;line-height:1.7;font-style:italic`},ex.cue)];
+  const pic=Picto(PICTO_BY_EX[ex.id],state.pictoBig?220:92);
+  if(!pic) titleEls.forEach(e=>fixedTop.appendChild(e));
+  else{
+    pic.style.cursor='pointer'; pic.style.flexShrink='0';
+    pic.addEventListener('click',()=>{ state.pictoBig=!state.pictoBig; render(); });   // tap to enlarge / shrink
+    if(state.pictoBig){ titleEls.forEach(e=>fixedTop.appendChild(e)); pic.style.margin='-8px auto 16px'; fixedTop.appendChild(pic); }
+    else fixedTop.appendChild(h('div',{style:'display:flex;gap:12px;align-items:flex-start'},[h('div',{style:'flex:1;min-width:0'},titleEls),pic]));
+  }
   fixedTop.appendChild(h('div',{style:'display:flex;gap:6px;margin-bottom:14px'},Array.from({length:ex.pSets}).map((_,i)=>h('div',{style:`flex:1;height:5px;border-radius:3px;background:${i<doneSets?T.ok:i===doneSets?T.acc:T.bdr}`}))));
   fixedTop.appendChild(h('div',{style:'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px'},[
     h('div',{style:`font-family:var(--mono);font-size:13px;color:${T.mut};letter-spacing:1px`},'SET '+Math.min(doneSets+1,ex.pSets)+' / '+ex.pSets),
@@ -1926,6 +2060,123 @@ function handleImportFile(e){
   };
   reader.readAsText(file); e.target.value='';
 }
+
+// ═══ PICTOGRAMS ═══
+// Line figures for stretches and recovery movements. Each pose is a set of joints in a
+// 120×90 box (floor at y≈82): h head, n neck/shoulders, m mid-spine (optional), p hips,
+// e/w elbow/wrist, k/f knee/foot, t toe (optional); 1 = near side (dark), 2 = far side (light).
+// `hl` = segments drawn in orange (the target), `props` = walls, benches, bands, straps,
+// `j2` = second pose for moving drills — the figure eases back and forth between the two.
+const PSTAND={h:[60,11],n:[60,21],p:[60,44],e1:[62,33],w1:[63,46],e2:[58,33],w2:[57,46],k1:[62,62],f1:[63,81],k2:[58,62],f2:[57,81]};
+const PFOURS={h:[92,64],n:[86,56],m:[64,53],p:[42,56],e1:[86,68],w1:[86,81],e2:[86,68],w2:[86,81],k1:[42,81],f1:[20,81],k2:[42,81],f2:[20,81]};
+const PSUP={h:[15,75],n:[26,78],p:[60,78],e1:[38,80],w1:[50,81],e2:[38,80],w2:[50,81],k1:[80,79],f1:[100,80],k2:[80,79],f2:[100,80]};
+const PHOOK=Object.assign({},PSUP,{k1:[74,60],f1:[86,80],k2:[74,60],f2:[86,80]});
+const PSIDE={h:[15,72],n:[26,76],p:[60,77],e1:[36,70],w1:[46,72],e2:[36,70],w2:[46,72],k1:[76,68],f1:[88,79],k2:[76,68],f2:[88,79]};
+const pz=(base,o)=>Object.assign({},base,o);
+const pUp=(j,dy)=>{ const o={}; for(const k in j) o[k]=[j[k][0],j[k][1]+dy]; return o; };
+const PHINGE={h:[86,30],n:[77,35],p:[48,45],e1:[74,48],w1:[72,60],e2:[74,48],w2:[72,60],k1:[56,63],f1:[60,81],k2:[54,63],f2:[58,81]};
+const PCRUNCH0=pz(PHOOK,{e1:[22,70],w1:[16,74],e2:[22,70],w2:[16,74]});
+const PICTOS={
+  // stretches
+  neck_side:{hl:['nk'],j:pz(PSTAND,{h:[53,14],e2:[47,17],w2:[51,7]})},
+  trap:{hl:['nk'],j:pz(PSTAND,{h:[55,16],e2:[47,16],w2:[52,8],e1:[66,32],w1:[62,40]})},
+  door:{hl:['u1'],props:[[72,4,72,82]],j:pz(PSTAND,{h:[57,12],n:[56,22],p:[53,44],e1:[72,22],w1:[72,8],e2:[50,33],w2:[48,44],k1:[49,62],f1:[46,81],k2:[60,62],f2:[66,81]})},
+  cross:{hl:['u1'],j:pz(PSTAND,{e1:[46,26],w1:[34,25],e2:[52,33],w2:[46,26]})},
+  sleeper:{hl:['u1'],j:pz(PSIDE,{e1:[26,60],w1:[38,60],e2:[34,68],w2:[38,61]})},
+  thread:{hl:['spine'],j:pz(PFOURS,{h:[74,74],n:[78,70],m:[60,60],e1:[62,78],w1:[46,81],e2:[90,72],w2:[92,81]})},
+  open_book:{hl:['spine','u1'],j:pz(PSIDE,{e1:[36,66],w1:[46,70],e2:[36,72],w2:[48,74],k1:[72,64],f1:[86,79],k2:[72,64],f2:[86,79]}),j2:pz(PSIDE,{e1:[20,62],w1:[8,70],e2:[36,72],w2:[48,74],k1:[72,64],f1:[86,79],k2:[72,64],f2:[86,79]})},
+  catcow:{hl:['spine'],j:pz(PFOURS,{h:[92,66],n:[86,55],m:[64,42],p:[42,55]}),j2:pz(PFOURS,{h:[97,46],n:[86,57],m:[64,63],p:[42,57],e1:[86,69],e2:[86,69]})},
+  child:{hl:['spine'],j:{h:[80,77],n:[70,73],m:[50,63],p:[30,71],e1:[88,78],w1:[106,80],e2:[88,78],w2:[106,80],k1:[56,81],f1:[27,81],k2:[56,81],f2:[27,81]}},
+  twist:{hl:['spine'],j:pz(PSUP,{e1:[30,68],w1:[32,56],k2:[70,62],f2:[62,78]})},
+  knees:{hl:['spine'],j:pz(PSUP,{k1:[50,58],f1:[66,64],k2:[50,58],f2:[66,64],e1:[40,66],w1:[54,58],e2:[40,66],w2:[54,58]})},
+  wrist:{hl:['f1'],j:pz(PSTAND,{e1:[73,24],w1:[86,24],e2:[70,32],w2:[86,18]})},
+  prayer:{hl:['f1','f2'],j:pz(PSTAND,{e1:[67,34],w1:[69,23],e2:[67,34],w2:[69,23]})},
+  h9090:{hl:['t1','t2'],j:{h:[55,44],n:[54,54],p:[52,78],e1:[46,66],w1:[40,80],e2:[46,66],w2:[40,80],k1:[72,78],f1:[80,80],k2:[46,79],f2:[30,80]}},
+  lunge_hf:{hl:['t2'],j:{h:[57,23],n:[55,33],p:[52,56],e1:[62,42],w1:[58,52],e2:[48,42],w2:[50,52],k1:[72,62],f1:[74,81],k2:[40,81],f2:[22,81]}},
+  pigeon:{hl:['t1'],j:{h:[63,42],n:[60,52],p:[52,74],e1:[66,66],w1:[70,81],e2:[66,66],w2:[70,81],k1:[74,80],f1:[58,81],k2:[32,80],f2:[12,81]}},
+  ham_strap:{hl:['t2','s2'],props:[{a:'w1',b:'f2'}],j:{h:[13,73],n:[24,76],p:[60,76],e1:[40,64],w1:[54,55],e2:[40,64],w2:[54,55],k1:[82,78],f1:[104,80],k2:[66,55],f2:[72,33]}},
+  fold:{hl:['t1','s1'],j:{h:[74,64],n:[64,62],m:[50,62],p:[36,79],e1:[74,70],w1:[86,74],e2:[74,70],w2:[86,74],k1:[62,79],f1:[88,80],k2:[62,79],f2:[88,80]}},
+  quad:{hl:['t2'],j:{h:[52,11],n:[52,21],p:[52,44],e1:[44,34],w1:[39,47],e2:[62,30],w2:[72,34],k1:[52,62],f1:[52,81],k2:[50,64],f2:[39,48]}},
+  couch:{hl:['t2'],props:[[16,40,16,82]],j:{h:[51,24],n:[50,34],p:[48,58],e1:[60,46],w1:[70,56],e2:[58,46],w2:[68,56],k1:[72,62],f1:[74,81],k2:[30,81],f2:[20,60]}},
+  calf_wall:{hl:['s1'],props:[[102,4,102,82]],j:{h:[88,20],n:[82,28],p:[60,48],e1:[92,33],w1:[101,30],e2:[92,33],w2:[101,30],k1:[44,66],f1:[29,81],k2:[76,62],f2:[82,81]}},
+  ankle:{hl:['s1'],j:{h:[58,23],n:[56,33],p:[52,56],e1:[66,44],w1:[76,55],e2:[64,44],w2:[74,55],k1:[78,58],f1:[70,81],k2:[40,81],f2:[22,81]},
+    j2:{h:[54,23],n:[52,33],p:[48,56],e1:[62,44],w1:[70,57],e2:[60,44],w2:[68,57],k1:[70,60],f1:[70,81],k2:[38,81],f2:[20,81]}},
+  legs_wall:{props:[[88,14,88,82]],j:{h:[36,76],n:[46,79],p:[84,79],e1:[56,74],w1:[64,80],e2:[56,74],w2:[64,80],k1:[85,60],f1:[86,40],k2:[85,60],f2:[86,40]}},
+  breathe:{j:pz(PHOOK,{m:[42,77],e1:[40,70],w1:[48,73]}),j2:pz(PHOOK,{m:[42,72],e1:[40,66],w1:[48,69]})},
+  lat_over:{hl:['u1','spine'],j:pz(PSTAND,{h:[53,12],n:[56,22],m:[59,33],e1:[66,6],w1:[52,-3],e2:[50,33],w2:[46,44]})},   // front view, side bend
+  crunch:{hl:['spine'],j:PCRUNCH0,j2:pz(PHOOK,{h:[26,62],n:[34,68],m:[46,76],e1:[30,58],w1:[24,64],e2:[30,58],w2:[24,64]})},
+  situp:{hl:['spine'],j:PCRUNCH0,j2:pz(PHOOK,{h:[52,40],n:[52,50],p:[60,78],e1:[58,60],w1:[56,52],e2:[58,60],w2:[56,52]})},
+  climber:{hl:['t1'],j:{h:[92,52],n:[84,58],p:[50,64],e1:[84,70],w1:[84,81],e2:[84,70],w2:[84,81],k1:[32,72],f1:[14,80],k2:[32,72],f2:[14,80]},
+    j2:{h:[92,52],n:[84,58],p:[50,64],e1:[84,70],w1:[84,81],e2:[84,70],w2:[84,81],k1:[68,72],f1:[58,80],k2:[32,72],f2:[14,80]}},
+  plank:{hl:['spine'],j:{h:[82,60],n:[72,64],p:[42,70],e1:[72,81],w1:[86,81],e2:[72,81],w2:[86,81],k1:[26,75],f1:[10,80],k2:[26,75],f2:[10,80]}},
+  hollow:{hl:['spine'],j:{h:[28,70],n:[36,74],m:[48,79],p:[60,78],e1:[24,68],w1:[12,64],e2:[24,68],w2:[12,64],k1:[80,72],f1:[100,66],k2:[80,72],f2:[100,66]}},
+  // recovery movements
+  ext_rot:{hl:['f1'],j:pz(PSTAND,{e1:[66,34],w1:[56,38]}),j2:pz(PSTAND,{e1:[66,34],w1:[80,33]})},
+  face_pull:{hl:['u1','u2'],props:[{a:'w1',b:[114,20]}],j:pz(PSTAND,{e1:[74,24],w1:[88,22],e2:[72,26],w2:[86,24]}),j2:pz(PSTAND,{e1:[50,16],w1:[64,12],e2:[52,18],w2:[66,14]})},
+  rdl:{hl:['t1'],j:PSTAND,j2:PHINGE},
+  hip_walk:{hl:['t1','t2'],props:[{a:'k1',b:'k2'}],j:pz(PSTAND,{e1:[70,36],w1:[62,44],e2:[50,36],w2:[58,44],k1:[66,62],f1:[70,81],k2:[54,62],f2:[50,81]}),j2:pz(PSTAND,{e1:[70,36],w1:[62,44],e2:[50,36],w2:[58,44],k1:[72,62],f1:[80,81],k2:[54,62],f2:[50,81]})},
+  band_pull:{hl:['u1','u2'],props:[{a:'w1',b:'w2'}],j:pz(PSTAND,{e1:[66,26],w1:[64,30],e2:[54,26],w2:[56,30]}),j2:pz(PSTAND,{e1:[76,22],w1:[92,22],e2:[44,22],w2:[28,22]})},
+  bird_dog:{hl:['spine'],j:PFOURS,j2:pz(PFOURS,{e1:[98,54],w1:[112,52],k2:[26,56],f2:[8,56]})},
+  dead_bug:{hl:['spine'],j:pz(PSUP,{e1:[28,64],w1:[30,52],e2:[28,64],w2:[30,52],k1:[62,60],f1:[78,60],k2:[62,60],f2:[78,60]}),
+    j2:pz(PSUP,{e1:[16,70],w1:[4,72],e2:[28,64],w2:[30,52],k1:[62,60],f1:[78,60],k2:[80,70],f2:[100,74]})},
+  scap_pu:{hl:['u1'],j:{h:[96,52],n:[86,58],p:[52,64],e1:[86,70],w1:[86,81],e2:[86,70],w2:[86,81],k1:[32,71],f1:[12,79],k2:[32,71],f2:[12,79]},
+    j2:{h:[96,47],n:[86,53],p:[52,63],e1:[86,67],w1:[86,81],e2:[86,67],w2:[86,81],k1:[32,71],f1:[12,79],k2:[32,71],f2:[12,79]}},
+  wall_slide:{hl:['u1','u2'],j:pz(PSTAND,{e1:[74,24],w1:[76,10],e2:[46,24],w2:[44,10]}),j2:pz(PSTAND,{e1:[70,10],w1:[76,2],e2:[50,10],w2:[44,2]})},
+  clam:{hl:['t1'],j:PSIDE,j2:pz(PSIDE,{k1:[72,54]})},
+  tempo_sq:{hl:['t1'],props:[[28,62,48,62],[30,62,30,82],[46,62,46,82]],j:pz(PSTAND,{h:[56,11],n:[56,21],p:[56,44],e1:[58,33],w1:[59,46],e2:[54,33],w2:[53,46],k1:[58,62],f1:[60,81],k2:[54,62],f2:[56,81]}),
+    j2:{h:[66,31],n:[60,40],p:[44,59],e1:[70,41],w1:[82,43],e2:[70,41],w2:[82,43],k1:[66,60],f1:[62,81],k2:[64,60],f2:[60,81]}},
+  calf_raise:{hl:['s1'],j:pz(PSTAND,{t1:[72,81],t2:[66,81]}),j2:Object.assign(pUp(PSTAND,-7),{t1:[72,81],t2:[66,81]})},
+  tib_raise:{hl:['s1'],props:[[38,4,38,82]],j:{h:[43,11],n:[43,21],p:[46,44],e1:[45,33],w1:[47,46],e2:[45,33],w2:[47,46],k1:[56,62],f1:[64,81],k2:[54,62],f2:[62,81],t1:[74,81],t2:[72,81]},
+    j2:{h:[43,11],n:[43,21],p:[46,44],e1:[45,33],w1:[47,46],e2:[45,33],w2:[47,46],k1:[56,62],f1:[64,81],k2:[54,62],f2:[62,81],t1:[73,73],t2:[71,73]}},
+  chin_tuck:{hl:['nk'],j:pz(PSTAND,{h:[65,11]}),j2:pz(PSTAND,{h:[58,12]})},
+  wrist_curl:{hl:['f1'],props:[[34,58,62,58],[36,58,36,82],[60,58,60,82]],j:{h:[44,24],n:[44,34],p:[42,57],e1:[56,50],w1:[70,54],e2:[54,48],w2:[66,52],k1:[64,57],f1:[66,81],k2:[62,57],f2:[64,81]},
+    j2:{h:[44,24],n:[44,34],p:[42,57],e1:[56,50],w1:[69,45],e2:[54,48],w2:[66,52],k1:[64,57],f1:[66,81],k2:[62,57],f2:[64,81]}},
+  bw_gm:{hl:['t1'],j:pz(PSTAND,{e1:[70,18],w1:[63,12],e2:[70,18],w2:[63,12]}),j2:pz(PHINGE,{e1:[84,22],w1:[82,31],e2:[84,22],w2:[82,31]})},
+};
+// Stretch / cooldown step names and exercise ids → pose
+const PICTO_BY_NAME={'Chin Tuck & Neck Side Stretch':'neck_side','Upper Trap Stretch':'trap','Doorframe Chest Stretch':'door','Cross-Body Shoulder Stretch':'cross',
+  'Sleeper Stretch':'sleeper','Thread the Needle':'thread','Open Book':'open_book','Cat-Cow':'catcow',"Child's Pose":'child','Supine Spinal Twist':'twist',
+  'Knees to Chest':'knees','Wrist Flexor & Extensor Stretch':'wrist','Wrist Flexor Stretch':'wrist','Prayer Stretch':'prayer','90/90 Hip Switch':'h9090',
+  'Hip Flexor Lunge Stretch':'lunge_hf','Pigeon / Figure-4':'pigeon','Pigeon Pose / Figure-4':'pigeon','Supine Hamstring Stretch':'ham_strap',
+  'Seated Forward Fold':'fold','Seated Hamstring Stretch':'fold','Standing Quad Stretch':'quad','Couch Stretch':'couch','Calf Wall Stretch':'calf_wall',
+  'Kneeling Ankle Rocks':'ankle','Legs Up the Wall':'legs_wall','Diaphragmatic Breathing':'breathe','Slow Diaphragmatic Breathing':'breathe',
+  'Lat Stretch (arm overhead)':'lat_over','Overhead Tricep & Lat Stretch':'lat_over','Crunches':'crunch','Bicycle Crunches':'crunch','Sit-Ups':'situp',
+  'Mountain Climbers':'climber','Plank':'plank','Dead Bug':'dead_bug','Hollow Body Hold':'hollow'};
+const PICTO_BY_EX={ext_rot:'ext_rot',lt_fp:'face_pull',lt_rdl:'rdl',hip_circ:'hip_walk',band_pull:'band_pull',bird_dog:'bird_dog',dead_bug:'dead_bug',
+  scap_pu:'scap_pu',wall_slide:'wall_slide',clamshell:'clam',tempo_sq:'tempo_sq',calf_raise:'calf_raise',tib_raise:'tib_raise',chin_tuck:'chin_tuck',
+  wrist_curl:'wrist_curl',bw_gm:'bw_gm'};
+function pictoMarkup(pose,j){
+  const P=x=>x[0].toFixed(1)+','+x[1].toFixed(1), hl=pose.hl||[];
+  const S={spine:j.m?[j.p,j.m,j.n]:[j.p,j.n],nk:[j.n,j.h],u1:[j.n,j.e1],f1:[j.e1,j.w1],u2:[j.n,j.e2],f2:[j.e2,j.w2],t1:[j.p,j.k1],s1:[j.k1,j.f1],t2:[j.p,j.k2],s2:[j.k2,j.f2]};
+  if(j.t1) S.ft1=[j.f1,j.t1]; if(j.t2) S.ft2=[j.f2,j.t2];
+  let out=`<line x1="4" y1="84" x2="116" y2="84" stroke="${T.bdr}" stroke-width="1.5"/>`;
+  (pose.props||[]).forEach(pr=>{
+    const fixed=Array.isArray(pr), pt=v=>typeof v==='string'?j[v]:v;
+    const a=fixed?[pr[0],pr[1]]:pt(pr.a), b=fixed?[pr[2],pr[3]]:pt(pr.b);
+    out+=`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${T.mut}" stroke-width="2" stroke-linecap="round"${fixed?'':' stroke-dasharray="3 3"'}/>`;
+  });
+  const far=['u2','f2','t2','s2','ft2'].filter(k=>S[k]&&!hl.includes(k));
+  far.concat(Object.keys(S).filter(k=>!far.includes(k)&&!hl.includes(k)),hl.filter(k=>S[k])).forEach(k=>{
+    const q=S[k], d=q.length===3?`M${P(q[0])} Q${P(q[1])} ${P(q[2])}`:`M${P(q[0])} L${P(q[1])}`;
+    const c=hl.includes(k)?T.tmr:far.includes(k)?'#C9C5BE':T.txt;
+    out+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="${hl.includes(k)?5:4.5}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  });
+  return out+`<circle cx="${j.h[0].toFixed(1)}" cy="${j.h[1].toFixed(1)}" r="6.5" fill="${T.txt}"/>`;
+}
+function Picto(id,px){
+  const pose=PICTOS[id]; if(!pose) return null;
+  return h('div',{'data-picto':id,style:`width:${px}px;max-width:100%;line-height:0`,html:`<svg viewBox="0 0 120 90" width="100%" style="display:block;overflow:visible">${pictoMarkup(pose,pose.j)}</svg>`});
+}
+// One loop animates every moving pictogram on screen (eases between j and j2)
+(function pictoLoop(ts){
+  const t=(1-Math.cos((ts||0)/1400))/2;
+  document.querySelectorAll('[data-picto]').forEach(el=>{
+    const pose=PICTOS[el.dataset.picto]; if(!pose||!pose.j2||!el.firstChild) return;
+    const j={}; for(const k in pose.j){ const a=pose.j[k], b=pose.j2[k]||a; j[k]=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]; }
+    el.firstChild.innerHTML=pictoMarkup(pose,j);
+  });
+  requestAnimationFrame(pictoLoop);
+})();
 
 // ═══ BOOT ═══
 render();
