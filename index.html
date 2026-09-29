@@ -749,7 +749,7 @@ const DEFAULT_CFG={dur:60,target:'today',equip:['barbell','dumbbell','bodyweight
 function loadCfg(){
   try{
     const c=JSON.parse(localStorage.getItem(CFG_KEY)||'null');
-    if(c&&[30,45,60].includes(c.dur)&&TARGETS.some(t=>t.id===c.target)&&Array.isArray(c.equip)&&EQ_GROUP1.some(e=>c.equip.includes(e.id)))
+    if(c&&c.dur>=10&&c.dur<=60&&c.dur%5===0&&TARGETS.some(t=>t.id===c.target)&&Array.isArray(c.equip)&&EQ_GROUP1.some(e=>c.equip.includes(e.id)))
       return {dur:c.dur,target:c.target,equip:c.equip.filter(id=>EQ_GROUP1.concat(EQ_GROUP2).some(e=>e.id===id))};
   }catch(e){}
   return JSON.parse(JSON.stringify(DEFAULT_CFG));
@@ -805,6 +805,7 @@ function go(screen){ state.screen=screen; render(); }
 // ═══ SETUP SCREEN ═══
 function Setup(){
   const c=state.cfg;
+  applyDurRules(c);   // an old saved 10-min non-recovery setup snaps to Recovery
   const toggle=id=>{ toggleEq(id); saveCfg(); render(); };
   const toggleEq=id=>{
     const hasG1=EQ_GROUP1.some(e=>e.id===id), cur=c.equip;
@@ -852,27 +853,22 @@ function Setup(){
   }
 
   // Duration
-  body.appendChild(h('div',{style:'margin-bottom:28px'},[
-    h('div',{style:`font-size:10px;letter-spacing:3px;color:${T.mut};margin-bottom:12px`},'DURATION'),
-    h('div',{style:'display:flex;gap:8px'},[30,45,60].map(d=>h('button',{
-      style:`flex:1;padding:16px 8px;border:1px solid ${c.dur===d?T.acc:T.bdr};background:${c.dur===d?T.acc+'14':T.sf};color:${c.dur===d?T.acc:T.txt};border-radius:10px;cursor:pointer;font-family:var(--body);text-align:center`,
-      onClick:()=>{c.dur=d;saveCfg();render();}
-    },[
-      h('div',{style:'font-family:var(--disp);font-size:42px;line-height:1;font-weight:800'},String(d)),
-      h('div',{style:'font-size:11px;opacity:.55;margin-top:2px'},'MIN'),
-    ]))),
-  ]));
+  body.appendChild(DurationSlider(c));
 
   // Target
   body.appendChild(h('div',{style:'margin-bottom:28px'},[
-    h('div',{style:`font-size:10px;letter-spacing:3px;color:${T.mut};margin-bottom:12px`},'MUSCLE TARGET'),
+    h('div',{style:`display:flex;justify-content:space-between;font-size:10px;letter-spacing:3px;color:${T.mut};margin-bottom:12px`},[
+      h('span',null,'MUSCLE TARGET'),
+      recoveryOnly(c)?h('span',{style:'letter-spacing:0;font-size:11px'},'10 min is recovery only · tap another to go to 15'):null,
+    ]),
     h('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:8px'},TARGETS.map(t=>{
       if(t.id==='today') return TodayCard(c);
       const isGaps=t.id==='gaps', gf=isGaps?gapFocus():null, locked=isGaps&&!(gf&&gf.muscles.length);
-      const sub=!isGaps?t.sub:locked?(state.saved.length?'No gaps right now — nicely balanced':'Log a few workouts to unlock'):gf.labels.join(' · ')+(gf.bias?' · more '+gf.bias:'');
+      const dim=recoveryOnly(c)&&t.id!=='recovery';   // greyed at 10 min; tapping bumps to 15
+      const sub=!isGaps||recoveryOnly(c)?t.sub:locked?(state.saved.length?'No gaps right now — nicely balanced':'Log a few workouts to unlock'):gf.labels.join(' · ')+(gf.bias?' · more '+gf.bias:'');
       return h('button',{
-        style:`padding:14px 16px;border:1px solid ${c.target===t.id?T.acc:T.bdr};background:${c.target===t.id?T.acc+'14':T.sf};color:${T.txt};border-radius:10px;cursor:${locked?'not-allowed':'pointer'};font-family:var(--body);text-align:left;opacity:${locked?.55:1}${isGaps?';grid-column:1/-1':''}`,
-        onClick:()=>{ if(locked)return; c.target=t.id;saveCfg();render(); }
+        style:`padding:14px 16px;border:1px solid ${c.target===t.id?T.acc:T.bdr};background:${c.target===t.id?T.acc+'14':T.sf};color:${T.txt};border-radius:10px;cursor:${locked?'not-allowed':'pointer'};font-family:var(--body);text-align:left;opacity:${locked?.55:dim?.4:1}${isGaps?';grid-column:1/-1':''}`,
+        onClick:()=>{ if(locked)return; if(dim) c.dur=WORKOUT_MIN; c.target=t.id; delete c.prevTarget; saveCfg();render(); }
       },[
         h('div',{style:'display:flex;justify-content:space-between;align-items:baseline;gap:8px'},[
           h('div',{style:`font-family:var(--disp);font-size:22px;font-weight:700;color:${c.target===t.id?T.acc:T.txt}`},t.label),
@@ -952,11 +948,59 @@ function RecoveryCheckin(){
     })),
   ]);
 }
+// Duration: 5-minute steps, 10–60. 10 min is recovery-only: choosing it switches to
+// Recovery and greys out the other targets; going back to 15+ restores your last target.
+// Tap the track to jump, drag to fine-tune, double-tap the number for your usual length.
+const DUR_MIN=10, DUR_MAX=60, DUR_STEP=5, WORKOUT_MIN=15;
+const recoveryOnly=c=>c.dur<WORKOUT_MIN;
+function applyDurRules(c){
+  if(recoveryOnly(c)&&c.target!=='recovery'){ c.prevTarget=c.target; c.target='recovery'; }
+  else if(!recoveryOnly(c)&&c.prevTarget){ c.target=c.prevTarget; delete c.prevTarget; }
+}
+function usualDur(){
+  const n={}; state.saved.forEach(w=>{ const d=w.config&&w.config.dur; if(d) n[d]=(n[d]||0)+1; });
+  const best=Object.keys(n).sort((a,b)=>n[b]-n[a])[0];
+  return best?Number(best):45;
+}
+function DurationSlider(c){
+  const min=DUR_MIN;
+  const pct=d=>(d-min)/(DUR_MAX-min)*100;
+  const num=h('span',{style:'font-family:var(--disp);font-size:52px;line-height:1;font-weight:800'},String(c.dur));
+  const fill=h('div',{style:`position:absolute;left:0;top:0;bottom:0;width:${pct(c.dur)}%;background:${T.acc};border-radius:4px`});
+  const knob=h('div',{style:`position:absolute;top:50%;left:${pct(c.dur)}%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:13px;background:${T.sf};border:3px solid ${T.acc};box-shadow:0 2px 6px rgba(0,0,0,.18)`});
+  const ticks=[];
+  for(let d=min;d<=DUR_MAX;d+=DUR_STEP){
+    const major=d%15===0||d===min;   // labels: 10 · 15 · 30 · 45 · 60
+    ticks.push(h('div',{style:`position:absolute;left:${pct(d)}%;top:22px;width:1px;height:${major?8:5}px;background:${major?T.mut:T.bdr};transform:translateX(-.5px)`}));
+    if(major) ticks.push(h('div',{style:`position:absolute;left:${pct(d)}%;top:33px;transform:translateX(-50%);font-family:var(--mono);font-size:10px;color:${T.mut}`},String(d)));
+  }
+  const track=h('div',{style:'position:relative;height:48px;margin:0 13px;touch-action:none;cursor:pointer'},[
+    h('div',{style:`position:absolute;left:0;right:0;top:4px;height:8px;background:${T.el};border-radius:4px`},[fill]),
+    h('div',{style:'position:absolute;left:0;right:0;top:8px'},[knob]),
+  ].concat(ticks));
+  const show=d=>{ num.textContent=String(d); fill.style.width=pct(d)+'%'; knob.style.left=pct(d)+'%'; };
+  const at=x=>{ const r=track.getBoundingClientRect(); const f=Math.max(0,Math.min(1,(x-r.left)/r.width)); return min+Math.round(f*(DUR_MAX-min)/DUR_STEP)*DUR_STEP; };
+  let dragging=false;
+  track.addEventListener('pointerdown',e=>{ dragging=true; try{ track.setPointerCapture(e.pointerId); }catch(_){} c.dur=at(e.clientX); show(c.dur); });
+  track.addEventListener('pointermove',e=>{ if(!dragging) return; const d=at(e.clientX); if(d!==c.dur){ c.dur=d; show(d); } });
+  const end=()=>{ if(!dragging) return; dragging=false; applyDurRules(c); saveCfg(); render(); };
+  track.addEventListener('pointerup',end); track.addEventListener('pointercancel',end);
+  let lastTap=0;
+  const readout=h('div',{style:'display:flex;align-items:baseline;gap:8px;margin-bottom:10px;cursor:pointer;user-select:none;-webkit-user-select:none',
+    onClick:()=>{ const now=Date.now(); if(now-lastTap<350){ c.dur=Math.max(min,Math.min(DUR_MAX,usualDur())); applyDurRules(c); saveCfg(); render(); } lastTap=now; }},
+    [num,h('span',{style:`font-size:12px;letter-spacing:2px;color:${T.mut}`},'MIN')]);
+  return h('div',{style:'margin-bottom:28px'},[
+    h('div',{style:`display:flex;justify-content:space-between;font-size:10px;letter-spacing:3px;color:${T.mut};margin-bottom:8px`},[
+      h('span',null,'DURATION'),h('span',{style:'letter-spacing:0;font-size:11px'},'tap or drag · double-tap for usual'),
+    ]),
+    readout, track,
+  ]);
+}
 function TodayCard(c){
-  const p=planToday(), on=c.target==='today';
+  const p=planToday(), on=c.target==='today', dim=recoveryOnly(c);   // greyed at 10 min; tapping bumps to 15
   return h('button',{
-    style:`grid-column:1/-1;padding:14px 16px;border:1px solid ${on?T.acc:T.bdr};background:${on?T.acc+'14':T.sf};color:${T.txt};border-radius:10px;cursor:pointer;font-family:var(--body);text-align:left`,
-    onClick:()=>{ c.target='today'; saveCfg(); render(); }
+    style:`grid-column:1/-1;padding:14px 16px;border:1px solid ${on?T.acc:T.bdr};background:${on?T.acc+'14':T.sf};color:${T.txt};border-radius:10px;cursor:pointer;font-family:var(--body);text-align:left;opacity:${dim?.4:1}`,
+    onClick:()=>{ if(dim) c.dur=WORKOUT_MIN; c.target='today'; delete c.prevTarget; saveCfg(); render(); }
   },[
     h('div',{style:'display:flex;justify-content:space-between;align-items:baseline;gap:8px'},[
       h('div',{style:`font-family:var(--disp);font-size:22px;font-weight:700;color:${on?T.acc:T.txt}`},'TODAY'),
