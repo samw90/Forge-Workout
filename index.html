@@ -117,41 +117,6 @@ const DB = [
   { id:'bw_gm',       name:'Bodyweight Good Morning', eq:['bodyweight'],                      muscles:['recovery','lower'],type:'recovery',tags:['recovery','hinge'],      sets:2, reps:15, repMax:20, rest:30,  inc:0,   cue:'Hands behind head · soft knees · hinge until hamstrings stretch · slow tempo' },
 ];
 
-const WARMUPS = {
-  upper: [
-    { name:'Arm Circles',               dur:40, cue:'20s forward · 20s reverse — full shoulder range of motion' },
-    { name:'Shoulder Rolls',            dur:30, cue:'15s backward · 15s forward — release trap tension' },
-    { name:'Band Pull-Apart',           dur:40, cue:'Arms straight · squeeze scapula at full extension each rep' },
-    { name:'Doorframe Chest Opener',    dur:40, cue:'Elbow at 90° · lean gently into doorframe · hold each side 20s' },
-    { name:'Wrist Circles & Flexion',   dur:30, cue:'Full circles then flex/extend — prep wrists for pressing load' },
-    { name:'Light Empty-Bar Work',      dur:60, cue:'10 slow OHP reps + 10 bench — prime the motor pattern lightly' },
-  ],
-  lower: [
-    { name:'Hip Circles',               dur:40, cue:'10 clockwise · 10 counter-clockwise each side — open hip joint' },
-    { name:'Leg Swings',                dur:40, cue:'Forward/back 20s · lateral 20s — hold wall for balance' },
-    { name:'Bodyweight Squat',          dur:50, cue:'10 slow reps — focus on depth and knee tracking over toes' },
-    { name:'Hip Hinge Drill',           dur:40, cue:'Hands on hips · push hips back — feel hamstring load at bottom' },
-    { name:'Glute Bridge',              dur:40, cue:'10 slow reps · squeeze at top · full hip extension each rep' },
-    { name:'Ankle Circles',             dur:30, cue:'Full circles both directions — prep ankle mobility for depth' },
-  ],
-  full: [
-    { name:'Hip Circles',               dur:30, cue:'10 each direction — open hip joint for Olympic demands' },
-    { name:'Leg Swings',                dur:30, cue:'Forward/back + lateral — dynamic hip mobility both planes' },
-    { name:'Arm Circles & Shoulder Rolls', dur:30, cue:'Loosen shoulders for catch position and overhead loading' },
-    { name:'Thoracic Rotation',         dur:40, cue:'Seated or kneeling · rotate through upper back both directions' },
-    { name:'Overhead Squat (bar/PVC)',  dur:60, cue:'Slow descent · assess mobility · keep torso upright throughout' },
-    { name:'Power Shrug Drill',         dur:40, cue:'Empty bar · practice triple extension — hips, knees, ankles' },
-  ],
-  recovery: [
-    { name:'Deep Diaphragmatic Breathing', dur:60, cue:'4-count inhale · 4-count hold · 6-count exhale — activate parasympathetic' },
-    { name:'Cat-Cow',                   dur:40, cue:'10 slow cycles — mobilise entire spine from tailbone to crown' },
-    { name:'Hip Flexor Stretch',        dur:40, cue:'Lunge position · sink hips · hold each side 20s' },
-    { name:'Thoracic Rotation',         dur:40, cue:'Seated or kneeling · gentle rotation both sides' },
-    { name:'Shoulder Cross-Body Stretch',dur:30, cue:'Pull arm across chest · hold each side 15s' },
-    { name:'Wrist & Ankle Circles',     dur:30, cue:'Full slow circles — prep joints for light therapeutic work' },
-  ],
-};
-
 const COOLDOWNS = {
   upper: [
     { name:'Doorframe Chest Stretch',    dur:35, cue:'Arms at 90° · lean forward gently — release pec tension fully' },
@@ -205,6 +170,7 @@ const EQ_GROUP2 = [
 ];
 const FIXTURE_IDS = new Set(['bench','squat_rack','bumper_plates']);
 const TARGETS = [
+  {id:'today',label:'TODAY',sub:'Auto coach'},
   {id:'upper',label:'UPPER',sub:'Chest · Back · Arms'},
   {id:'lower',label:'LOWER',sub:'Quads · Hams · Glutes'},
   {id:'full',label:'FULL BODY',sub:'Olympic · Compound'},
@@ -257,6 +223,10 @@ function getProgression(exId, exDef, history){
   }
 
   // ── loaded ──
+  // Ignore sessions with no real load recorded (e.g. weight left at 0) — they'd suggest 0 lbs
+  const loadedSessions=sessions.filter(x=>x.sets.some(y=>y.weight>0));
+  if(!loadedSessions.length) return null;
+  if(loadedSessions.length!==sessions.length) return getProgression(exId,exDef,history.filter(w=>{const e=(w.exercises||[]).find(x=>x.id===exId); return !e||!e.loggedSets||!e.loggedSets.length||e.loggedSets.some(y=>y.weight>0);}));
   // Round to increments that exist for the implement (dumbbells come in 5s)
   const rnd = v => { const step=(exDef.eq||[]).includes('dumbbell')?5:2.5; return Math.round(v/step)*step; };
   const topWOf = s => Math.max.apply(null,s.sets.map(x=>x.weight||0));
@@ -279,6 +249,13 @@ function getProgression(exId, exDef, history){
   else if(setsOnTarget>=Math.ceil(totalWork*0.50)){nextWeight=topWeight;nextReps=bestLastReps;status='HOLD';advice="Building rep consistency — match last session's reps";citation='Zourdos et al. 2016';}
   else{nextWeight=rnd(Math.max(topWeight-Math.max(inc,topWeight*0.10),0));nextReps=targetReps;status='DELOAD';advice='Reps fell short — reduce ~10% to restore quality';citation='Helms et al. 2018 · Kraemer & Ratamess 2004';}
 
+  // RPE autoregulation: reps alone don't show how close to failure the sets were
+  const rpes=workSets.map(x=>x.rpe).filter(Boolean);
+  const avgR=rpes.length>=Math.ceil(totalWork/2)?rpes.reduce((a,b)=>a+b,0)/rpes.length:null;
+  if(avgR!=null){
+    if(status==='PROGRESS'&&avgR>=9.5){ status='HOLD'; nextWeight=topWeight; nextReps=Math.min(repMax,bestLastReps); advice='Reps hit, but at RPE '+avgR.toFixed(1)+' — own this weight one more session'; citation='Helms et al. 2016 · RPE autoregulation'; }
+    else if(status==='HOLD'&&avgR<=7&&setsOnTarget===totalWork&&enough){ nextWeight=rnd(topWeight+inc); nextReps=targetReps; status='PROGRESS'; advice='All sets on target at RPE '+avgR.toFixed(1)+' — plenty left, add '+(nextWeight-topWeight)+' lbs'; citation='Helms et al. 2016 · RPE autoregulation'; }
+  }
   // Stall: 3 straight sessions at the same top weight with no top-set rep gain
   if(status==='HOLD'&&sessions.length>=3){
     const r3=sessions.slice(-3);
@@ -439,6 +416,7 @@ function genWorkout(dur,target,equip){
     return false;
   };
   if(target==='gaps') return genGaps(dur,equip,all);
+  if(target==='today') return genToday(dur,equip,all);
   if(target==='recovery'){
     const pool=all.filter(e=>e.type==='recovery');
     for(let i=0;i<20&&sel.length<MAX_EX;i++){ if(!add(pool,sel.length<3)) break; }
@@ -478,20 +456,27 @@ function gapFocus(){
     bias:ratio>1.5?'pull':(r.pat.push>0&&ratio<0.67)?'push':null};
 }
 const gapCredit=(e,m)=>musclesOf(e).includes(m)?1:secondaryOf(e).includes(m)?0.5:0;
-function genGaps(dur,equip,all){
-  const g=gapFocus();
-  if(!g||!g.muscles.length) return toWkt([],dur,'gaps',equip);
-  const budget=dur*60, MAX_EX=9, CHEAP=315;
-  const need={}; g.muscles.forEach(m=>need[m]=Math.max(1,g.need[m]));
-  // Olympic lifts are skill work, not a way to patch a muscle gap
-  const pool=all.filter(e=>e.type!=='recovery'&&e.type!=='olympic'&&g.muscles.some(m=>gapCredit(e,m)>0));
+// Build a session from muscle weights. `w` = muscles to prioritise (weight = how much),
+// `w2` = broader weights used to fill leftover time, `avoid` = muscles to leave alone,
+// `bias` = 'push'|'pull' to favour, `oly` = open with one Olympic lift.
+function genWeighted(dur,equip,all,o){
+  const budget=dur*60, MAX_EX=9, CHEAP=315, avoid=o.avoid||[];
+  const focus=Object.keys(o.w).filter(m=>o.w[m]>0);
+  const need={}; focus.forEach(m=>need[m]=o.w[m]);
+  const ok=e=>e.type!=='recovery'&&!avoid.some(m=>musclesOf(e).includes(m));
+  // Olympic lifts are skill work — only as a deliberate opener, never to patch a muscle
+  const pool=all.filter(e=>ok(e)&&e.type!=='olympic'&&focus.some(m=>gapCredit(e,m)>0));
   const sameTags=(a,b)=>a.tags.length===b.tags.length&&a.tags.every(t=>b.tags.includes(t));
   const sel=[]; let used=0;
-  // Weighted by remaining need; each pick halves that muscle's need so the session spreads across gaps
+  if(o.oly){
+    const p=pickOne(all.filter(e=>ok(e)&&e.type==='olympic'&&exCost(e)<=budget*0.35));
+    if(p){ sel.push(p); used+=exCost(p); }
+  }
+  // Weighted by remaining need; each pick halves that muscle's need so the session spreads out
   const score=e=>{
-    let v=0; g.muscles.forEach(m=>v+=gapCredit(e,m)*need[m]);
-    if(g.bias&&e.tags.includes(g.bias)) v*=1.3;
-    if(e.type==='compound'||e.type==='olympic') v*=1.1;
+    let v=0; focus.forEach(m=>v+=gapCredit(e,m)*need[m]);
+    if(o.bias&&e.tags.includes(o.bias)) v*=1.3;
+    if(e.type==='compound') v*=1.1;
     if(sel.some(x=>sameTags(x,e))) v*=0.5;
     return v;
   };
@@ -502,40 +487,133 @@ function genGaps(dur,equip,all){
     const best=Math.max.apply(null,cand.map(x=>x.v));
     const p=pickOne(cand.filter(x=>x.v>=best*0.85)).e;
     sel.push(p); used+=exCost(p);
-    g.muscles.forEach(m=>{ const c=gapCredit(p,m); if(c) need[m]*=c===1?0.5:0.75; });
+    focus.forEach(m=>{ const c=gapCredit(p,m); if(c) need[m]*=c===1?0.5:0.75; });
   }
   for(let i=0;sel.length<3&&i<5;i++){
     const rest=pool.filter(e=>!sel.includes(e)); if(!rest.length) break;
     const min=Math.min.apply(null,rest.map(exCost)), p=pickOne(rest.filter(e=>exCost(e)===min));
     sel.push(p); used+=exCost(p);
   }
-  // Fill the requested time. The gap is volume, so first add sets to gap exercises;
-  // then add moves for the next-most-undertrained muscles; then top up sets anywhere.
+  // Fill the requested time: extra sets on priority exercises first, then moves for the
+  // broader weights, then top up sets anywhere.
   const MAX_SETS=5, extra=new Map(), setCost=e=>45+effRest(e.rest);
-  const gapW=e=>g.muscles.reduce((a,m)=>a+gapCredit(e,m)*g.need[m],0);
+  const prio=e=>focus.reduce((a,m)=>a+gapCredit(e,m)*o.w[m],0);
   const bump=(list,rounds)=>{ for(let r=0;r<rounds;r++) list.forEach(e=>{
     const x=extra.get(e)||0;
     if(x===r&&e.sets+x<MAX_SETS&&used+setCost(e)<=budget){ extra.set(e,x+1); used+=setCost(e); }
   }); };
-  bump(sel.filter(e=>gapW(e)>0).sort((a,b)=>gapW(b)-gapW(a)),2);
-  const pool2=all.filter(e=>e.type!=='recovery'&&e.type!=='olympic');
+  bump(sel.filter(e=>prio(e)>0).sort((a,b)=>prio(b)-prio(a)),2);
+  const pool2=all.filter(e=>ok(e)&&e.type!=='olympic');
   while(sel.length<MAX_EX){
     const cand=pool2.filter(e=>!sel.includes(e)&&used+exCost(e)<=budget)
-      .map(e=>({e,v:MUSCLES.reduce((a,[m])=>a+gapCredit(e,m)*(g.need[m]||0),0)*(sel.some(x=>sameTags(x,e))?0.5:1)}))
+      .map(e=>({e,v:MUSCLES.reduce((a,[m])=>a+gapCredit(e,m)*(o.w2[m]||0),0)*(sel.some(x=>sameTags(x,e))?0.5:1)}))
       .filter(x=>x.v>0);
     if(!cand.length) break;
     const best=Math.max.apply(null,cand.map(x=>x.v));
     const p=pickOne(cand.filter(x=>x.v>=best*0.85)).e;
     sel.push(p); used+=exCost(p);
   }
-  bump(sel.slice().sort((a,b)=>gapW(b)-gapW(a)),3);
-  const ordered=orderSession(sel.map(e=>extra.get(e)?Object.assign({},e,{sets:e.sets+extra.get(e)}):e));
+  bump(sel.slice().sort((a,b)=>prio(b)-prio(a)),3);
   const up=sel.some(e=>e.muscles.includes('upper')), low=sel.some(e=>e.muscles.includes('lower'));
-  const w=toWkt(ordered,dur,'gaps',equip);
-  w.config.muscles=g.muscles; w.config.focus=g.labels;
-  w.config.warm=up&&low?'full':low?'lower':'upper'; // which warmup/cooldown fits this session
-  return w;
+  return {
+    exercises:orderSession(sel.map(e=>extra.get(e)?Object.assign({},e,{sets:e.sets+extra.get(e)}):e)),
+    warm:up&&low?'full':low?'lower':'upper',   // which warmup/cooldown fits this session
+  };
 }
+function genGaps(dur,equip,all){
+  const g=gapFocus();
+  if(!g||!g.muscles.length) return toWkt([],dur,'gaps',equip);
+  const w={}; g.muscles.forEach(m=>w[m]=Math.max(1,g.need[m]));
+  const r=genWeighted(dur,equip,all,{w,w2:g.need,bias:g.bias});
+  const wk=toWkt(r.exercises,dur,'gaps',equip);
+  wk.config.muscles=g.muscles; wk.config.focus=g.labels; wk.config.warm=r.warm;
+  return wk;
+}
+
+// ═══ TODAY (auto coach) ═══
+// Effort per set: RPE 6 (easy) … 10 (max). Unrated sets count as ~RPE 8.5.
+const RPE_FACTOR={6:0.6,7:0.75,8:0.9,9:1.05,10:1.2};
+const rpeFactor=r=>r?(RPE_FACTOR[Math.round(r)]||1):1;
+const UPPER_M=['chest','back','shoulders','biceps','triceps'], LOWER_M=['quads','hamstrings','glutes'];
+const RECOVERY_H=36, FATIGUE_FULL=8;   // fatigue halves-ish every ~day; 8 hard sets ≈ not ready
+
+// Decide today's session from recovery (sets × effort, decaying over ~36h), this month's
+// weekly volume gaps, how long since each muscle was trained, and recent effort (RPE).
+function planToday(){
+  const now=Date.now(), hist=state.saved, has=hist.length>0;
+  let rep=has?buildReport(28):null; if(rep&&!rep.win.length) rep=buildReport(0);
+  const fat={}, last={}; MUSCLES.forEach(([m])=>fat[m]=0);
+  hist.forEach(w=>{
+    const t=new Date(w.date).getTime()+(w.elapsed||0)*1000, hrs=(now-t)/3600000;
+    if(!(hrs>=0)) return;
+    const decay=Math.exp(-hrs/RECOVERY_H);
+    (w.exercises||[]).forEach(e=>{
+      const def=getExDef(e), sets=e.loggedSets||[];
+      if(!sets.length||def.type==='recovery') return;
+      const eff=sets.reduce((a,s)=>a+rpeFactor(s.rpe),0);
+      musclesOf(def).forEach(m=>{ fat[m]+=eff*decay; last[m]=Math.max(last[m]||0,t); });
+      secondaryOf(def).forEach(m=>fat[m]+=eff*0.5*decay);
+    });
+  });
+  const M={};
+  MUSCLES.forEach(([id,label])=>{
+    const ready=Math.max(0,Math.min(1,1-fat[id]/FATIGUE_FULL));
+    const mm=rep&&rep.muscles.find(x=>x.id===id), weekly=mm?mm.weekly:0;
+    const need=has?Math.max(0,Math.min(1,(SET_TARGET-weekly)/SET_TARGET)):0.5;
+    const days=last[id]?(now-last[id])/DAY:null;
+    const stale=days==null?(has?0.5:0):Math.min(1,days/7)*0.5;
+    M[id]={id,label,ready,need,days,pri:ready*(0.3+need+stale)};
+  });
+  const avg=ids=>ids.reduce((a,id)=>a+M[id].pri,0)/ids.length;
+  const minReady=ids=>Math.min.apply(null,ids.map(id=>M[id].ready));
+  const U=avg(UPPER_M), L=avg(LOWER_M);
+  const region=U>1.25*L?'upper':L>1.25*U?'lower':'full';
+  const ids=region==='upper'?UPPER_M:region==='lower'?LOWER_M:UPPER_M.concat(LOWER_M);
+  let avoid=ids.filter(id=>M[id].ready<0.5);
+  let live=ids.filter(id=>!avoid.includes(id));
+  if(!live.length){ live=ids; avoid=[]; }
+  const w={}, w2={};
+  live.forEach(id=>w2[id]=M[id].pri);
+  const focus=live.slice().sort((a,b)=>M[b].pri-M[a].pri).slice(0,4);
+  focus.forEach(id=>w[id]=Math.max(0.05,M[id].pri));
+
+  // Recent effort: last 3 sessions averaging RPE 9+ → lighter day
+  const rpes=hist.slice(-3).flatMap(x=>(x.exercises||[]).flatMap(e=>(e.loggedSets||[]).map(s=>s.rpe).filter(Boolean)));
+  const avgRpe=rpes.length>=6?rpes.reduce((a,b)=>a+b,0)/rpes.length:null;
+  const deload=avgRpe!=null&&avgRpe>=9;
+  // Open with an Olympic lift if you've been doing them and the posterior chain is fresh
+  const olyLately=!!rep&&rep.win.some(x=>(x.exercises||[]).some(e=>getExDef(e).type==='olympic'&&(e.loggedSets||[]).length));
+  const oly=region!=='upper'&&olyLately&&['hamstrings','glutes','back'].every(id=>M[id].ready>=0.7);
+  const ratio=rep&&rep.pat.push+rep.pat.pull>=6?rep.pat.push/Math.max(rep.pat.pull,1):1;
+  const bias=region==='lower'?null:ratio>1.5?'pull':(rep&&rep.pat.push>0&&ratio<0.67)?'push':null;
+
+  const pct=v=>Math.round(v*100)+'%';
+  const why=[];
+  if(!has) why.push('No history yet — balanced full-body start');
+  else{
+    if(region==='upper') why.push(minReady(LOWER_M)<0.8?'Legs still recovering ('+pct(minReady(LOWER_M))+' ready)':'Upper body is further behind this month');
+    else if(region==='lower'){
+      const d=Math.min.apply(null,LOWER_M.map(id=>M[id].days==null?99:M[id].days));
+      why.push(minReady(UPPER_M)<0.8?'Upper body still recovering ('+pct(minReady(UPPER_M))+' ready)':d>=4?'Legs last trained '+Math.round(d)+' days ago':'Lower body is further behind this month');
+    }
+    else why.push(minReady(ids)>=0.8?'Everything is recovered — full body':'Upper and lower are about even');
+    why.push('Focus: '+focus.slice(0,3).map(id=>M[id].label.toLowerCase()).join(', '));
+    if(avoid.length) why.push('Resting '+avoid.map(id=>M[id].label.toLowerCase()).join(', ')+' — trained hard recently');
+    if(deload) why.push('Lighter day: recent sets averaged RPE '+avgRpe.toFixed(1)+' — weights at ~90%');
+    if(oly) why.push('Opening with an Olympic lift — posterior chain is fresh');
+    if(bias) why.push('Leaning '+bias+' to balance push/pull');
+  }
+  return {region,w,w2,avoid,bias,oly,deload,why,focus:focus.map(id=>M[id].label),muscles:focus.concat(live.filter(id=>!focus.includes(id))),M};
+}
+function genToday(dur,equip,all){
+  const p=planToday();
+  const r=genWeighted(dur,equip,all,{w:p.w,w2:p.w2,avoid:p.avoid,bias:p.bias,oly:p.oly});
+  const wk=toWkt(r.exercises,dur,'today',equip);
+  Object.assign(wk.config,{region:p.region,muscles:p.muscles,focus:p.focus,warm:r.warm,deload:p.deload,why:p.why});
+  return wk;
+}
+// Short label for a workout's config, e.g. "TODAY · UPPER · 45MIN"
+const wktLabel=c=>(c.target==='today'?'TODAY · '+String(c.region||'').toUpperCase():String(c.target).toUpperCase())+' · '+c.dur+'MIN';
 function toWkt(exercises,dur,target,equip){
   return {id:Date.now(),date:new Date().toISOString(),config:{dur,target,equip},exercises:exercises.map(ex=>Object.assign({},ex,{pSets:ex.sets,pReps:ex.reps,loggedSets:[]}))};
 }
@@ -572,7 +650,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden&&state.scr
 
 // Setup choices (duration / target / equipment) persist between visits
 const CFG_KEY='forge_cfg_v1';
-const DEFAULT_CFG={dur:60,target:'upper',equip:['barbell','dumbbell','bodyweight','cable','band','bench','squat_rack','bumper_plates']};
+const DEFAULT_CFG={dur:60,target:'today',equip:['barbell','dumbbell','bodyweight','cable','band','bench','squat_rack','bumper_plates']};
 function loadCfg(){
   try{
     const c=JSON.parse(localStorage.getItem(CFG_KEY)||'null');
@@ -621,7 +699,6 @@ function render(){
   const r=root(); r.innerHTML='';
   let view;
   if(state.screen==='setup') view=Setup();
-  else if(state.screen==='warmup') view=WarmCool('warmup');
   else if(state.screen==='active') view=Active();
   else if(state.screen==='cooldown') view=WarmCool('cooldown');
   else if(state.screen==='history') view=History();
@@ -652,6 +729,18 @@ function Setup(){
   ]);
   const body=h('div',{style:'padding:28px 24px 0;max-width:480px;margin:0 auto;box-sizing:border-box'});
 
+  // Backup reminder — history lives only on this phone
+  const bk=backupDue();
+  if(bk&&!loadActive()){
+    body.appendChild(h('div',{style:`background:${T.sf};border:1px solid ${T.bdr};border-radius:12px;padding:12px 14px;margin-bottom:20px;display:flex;align-items:center;gap:12px`},[
+      h('div',{style:'flex:1;min-width:0'},[
+        h('div',{style:'font-size:10px;letter-spacing:2px;font-weight:600;margin-bottom:2px'},'BACK UP YOUR HISTORY'),
+        h('div',{style:`font-size:12px;color:${T.mut}`},bk.never?'Your '+state.saved.length+' workouts only live on this phone':bk.since+' new workout'+(bk.since===1?'':'s')+' since your last backup'),
+      ]),
+      h('button',{style:`flex-shrink:0;padding:9px 14px;background:${T.acc};color:${T.bg};border:none;border-radius:9px;cursor:pointer;font-family:var(--body);font-size:12px;font-weight:600`,onClick:()=>{handleExport();render();}},'Back up'),
+    ]));
+  }
+
   // Resume banner — unfinished session found in storage
   const act=loadActive();
   if(act&&act.wkt){
@@ -659,7 +748,7 @@ function Setup(){
     body.appendChild(h('div',{style:`background:${T.tmr}12;border:1px solid ${T.tmr}55;border-radius:12px;padding:14px 16px;margin-bottom:24px`},[
       h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.tmr};margin-bottom:4px;font-weight:600`},'UNFINISHED WORKOUT'),
       h('div',{style:`font-size:13px;color:${T.txt};margin-bottom:12px`},
-        act.wkt.config.target.toUpperCase()+' · '+act.wkt.config.dur+'MIN — '+sets+' set'+(sets===1?'':'s')+' logged, '+fmtT(act.elapsed||0)+' elapsed'),
+        wktLabel(act.wkt.config)+' — '+sets+' set'+(sets===1?'':'s')+' logged, '+fmtT(act.elapsed||0)+' elapsed'),
       h('div',{style:'display:flex;gap:8px'},[
         h('button',{style:`flex:1;padding:11px;background:${T.acc};color:${T.bg};border:none;border-radius:10px;cursor:pointer;font-family:var(--disp);font-size:16px;font-weight:700`,onClick:resumeActive},'RESUME →'),
         h('button',{style:`padding:11px 18px;background:${T.sf};border:1px solid ${T.bdr};color:${T.mut};border-radius:10px;cursor:pointer;font-family:var(--body);font-size:13px`,onClick:discardActive},'Discard'),
@@ -683,6 +772,7 @@ function Setup(){
   body.appendChild(h('div',{style:'margin-bottom:28px'},[
     h('div',{style:`font-size:10px;letter-spacing:3px;color:${T.mut};margin-bottom:12px`},'MUSCLE TARGET'),
     h('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:8px'},TARGETS.map(t=>{
+      if(t.id==='today') return TodayCard(c);
       const isGaps=t.id==='gaps', gf=isGaps?gapFocus():null, locked=isGaps&&!(gf&&gf.muscles.length);
       const sub=!isGaps?t.sub:locked?(state.saved.length?'No gaps right now — nicely balanced':'Log a few workouts to unlock'):gf.labels.join(' · ')+(gf.bias?' · more '+gf.bias:'');
       return h('button',{
@@ -740,6 +830,21 @@ function Setup(){
   return wrap;
 }
 
+function TodayCard(c){
+  const p=planToday(), on=c.target==='today';
+  return h('button',{
+    style:`grid-column:1/-1;padding:14px 16px;border:1px solid ${on?T.acc:T.bdr};background:${on?T.acc+'14':T.sf};color:${T.txt};border-radius:10px;cursor:pointer;font-family:var(--body);text-align:left`,
+    onClick:()=>{ c.target='today'; saveCfg(); render(); }
+  },[
+    h('div',{style:'display:flex;justify-content:space-between;align-items:baseline;gap:8px'},[
+      h('div',{style:`font-family:var(--disp);font-size:22px;font-weight:700;color:${on?T.acc:T.txt}`},'TODAY'),
+      h('div',{style:`font-size:10px;letter-spacing:1.5px;color:${T.mut}`},'AUTO COACH'),
+    ]),
+    h('div',{style:`font-family:var(--disp);font-size:15px;font-weight:700;margin-top:4px;color:${p.deload?T.warn:T.txt}`},
+      (p.region==='full'?'FULL BODY':p.region.toUpperCase()+' BODY')+(p.deload?' · LIGHTER DAY':'')),
+  ].concat(p.why.map(t=>h('div',{style:`font-size:11px;color:${T.mut};margin-top:3px;line-height:1.4`},'· '+t))));
+}
+
 function startWorkout(){
   const wkt=genWorkout(state.cfg.dur,state.cfg.target,state.cfg.equip);
   if(!wkt.exercises.length){
@@ -754,13 +859,13 @@ function startWorkout(){
   state.exIdx=0;
   state.elapsed=0;
   persistActive();
-  go('warmup');
+  go('active');   // warm-up = ramp sets on the first movement, shown in the workout
 }
 
 // ═══ WARMUP / COOLDOWN ═══
 function WarmCool(phase){
   const target=state.wkt?(state.wkt.config.warm||state.wkt.config.target):state.cfg.target;
-  const steps=(phase==='warmup'?WARMUPS:COOLDOWNS)[target]||WARMUPS.upper;
+  const steps=(COOLDOWNS[target]||COOLDOWNS.upper);
   if(state.wc.phase!==phase){ state.wc={phase,idx:0,secs:steps[0].dur,paused:false,endAt:Date.now()+steps[0].dur*1000}; }
   // Like the rest timer, remaining time comes from endAt so a locked screen doesn't stall it
   const setStep=i=>{ state.wc.idx=i; state.wc.secs=steps[i].dur; state.wc.endAt=Date.now()+steps[i].dur*1000; };
@@ -770,8 +875,7 @@ function WarmCool(phase){
     render();
   };
   const wc=state.wc, step=steps[wc.idx];
-  const accent=phase==='warmup'?T.acc:T.ok;
-  const isWarm=phase==='warmup';
+  const accent=T.ok;
   const totalDur=steps.reduce((a,s)=>a+s.dur,0);
   const elapsed=steps.slice(0,wc.idx).reduce((a,s)=>a+s.dur,0)+(step.dur-wc.secs);
 
@@ -791,7 +895,7 @@ function WarmCool(phase){
   const wrap=h('div',{style:`min-height:100vh;background:${T.bg};color:${T.txt};font-family:var(--body);display:flex;flex-direction:column`});
   wrap.appendChild(h('div',{style:`background:${T.sf};border-bottom:1px solid ${T.bdr};padding:14px 20px;display:flex;justify-content:space-between;align-items:center`},[
     h('div',null,[
-      h('div',{style:`font-family:var(--disp);font-size:26px;letter-spacing:2px;color:${accent};font-weight:700`},isWarm?'WARMUP':'COOL DOWN'),
+      h('div',{style:`font-family:var(--disp);font-size:26px;letter-spacing:2px;color:${accent};font-weight:700`},'COOL DOWN'),
       h('div',{style:`font-size:10px;color:${T.mut};letter-spacing:2px;margin-top:2px`},Math.round(totalDur/60)+' MIN · NOT COUNTED IN WORKOUT TIME'),
     ]),
     h('button',{style:`background:${T.el};border:1px solid ${T.bdr};color:${T.mut};padding:9px 16px;border-radius:10px;cursor:pointer;font-family:var(--body);font-size:12px`,onClick:()=>finishWC(phase)},'SKIP ALL'),
@@ -816,7 +920,7 @@ function WarmCool(phase){
     h('button',{style:`flex:1;padding:14px;background:${T.sf};border:1px solid ${T.bdr};color:${T.txt};border-radius:12px;cursor:pointer;font-family:var(--disp);font-size:18px;font-weight:700`,onClick:togglePause},state.wc.paused?'▶ RESUME':'⏸ PAUSE'),
     wc.idx<steps.length-1
       ? h('button',{style:`flex:1;padding:14px;background:${accent};color:${T.bg};border:none;border-radius:12px;cursor:pointer;font-family:var(--disp);font-size:18px;font-weight:700`,onClick:()=>{setStep(state.wc.idx+1);render();}},'NEXT →')
-      : h('button',{style:`flex:1;padding:14px;background:${accent};color:${T.bg};border:none;border-radius:12px;cursor:pointer;font-family:var(--disp);font-size:18px;font-weight:700`,onClick:()=>finishWC(phase)},isWarm?'START WORKOUT →':'DONE ✓'),
+      : h('button',{style:`flex:1;padding:14px;background:${accent};color:${T.bg};border:none;border-radius:12px;cursor:pointer;font-family:var(--disp);font-size:18px;font-weight:700`,onClick:()=>finishWC(phase)},'DONE ✓'),
   ]));
   wrap.appendChild(main);
 
@@ -840,8 +944,7 @@ function updateWCTimer(steps,accent){
 function finishWC(phase){
   if(wcInterval)clearInterval(wcInterval);
   state.wc={phase:null,idx:0,secs:0,paused:false};
-  if(phase==='warmup'){ go('active'); }
-  else { state.wkt=null; go('history'); }
+  state.wkt=null; go('history');
 }
 
 // ═══ ACTIVE WORKOUT ═══
@@ -850,7 +953,9 @@ function navTo(idx){
   const nex=state.wkt.exercises[idx], def=getExDef(nex);
   const prog=getProgression(nex.id,def,state.saved);
   const isBW=isBWEx(def);
-  state.wIn=isBW?'0':(prog?String(prog.nextWeight):'');
+  let wSug=prog?prog.nextWeight:null;
+  if(wSug&&state.wkt.config.deload) wSug=Math.max(0,Math.round(wSug*0.9/5)*5);   // Today's lighter day
+  state.wIn=isBW?'0':(wSug!=null?String(wSug):'');
   state.rIn=prog&&prog.nextReps!=null?String(prog.nextReps):String(nex.pReps);
   persistActive();
 }
@@ -879,7 +984,7 @@ function Active(){
   wrap.appendChild(h('div',{style:`flex-shrink:0;background:${T.sf};border-bottom:1px solid ${T.bdr};padding:14px 20px;display:flex;justify-content:space-between;align-items:center`},[
     h('div',null,[
       h('div',{id:'elapsed',style:`font-family:var(--mono);font-size:22px;color:${T.acc};letter-spacing:1px`},fmtT(state.elapsed)),
-      h('div',{style:`font-size:10px;color:${T.mut};letter-spacing:2px;margin-top:2px`},wkt.config.target.toUpperCase()+' · '+wkt.config.dur+'MIN'),
+      h('div',{style:`font-size:10px;color:${T.mut};letter-spacing:2px;margin-top:2px`},wktLabel(wkt.config)+(wkt.config.deload?' · DELOAD':'')),
     ]),
     h('button',{style:`background:${T.acc};color:${T.bg};border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:var(--disp);font-size:18px;font-weight:700`,onClick:()=>{state.endPrompt='open';render();}},'END'),
   ]));
@@ -952,28 +1057,26 @@ function Active(){
       h('div',{style:'flex:1'},[h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:6px`,html:'REPS <span style="color:'+T.bdr+';letter-spacing:0;font-size:10px">('+ex.pReps+'\u2013'+(ex.repMax||ex.pReps+3)+')</span>'}),swipeNumber(rInput,1,'rIn')]),
     ]));
     if(state.logErr){ fixedTop.appendChild(h('div',{style:`font-size:12px;color:${T.bad};margin:-6px 0 10px;text-align:center`},state.logErr)); state.logErr=null; }
-    fixedTop.appendChild(LogButton(doneSets+1));
+    fixedTop.appendChild(LogButton('LOG SET '+(doneSets+1),'LOG SET '+(doneSets+1),logSet));
   } else if(!isAllDone){
-    fixedTop.appendChild(h('div',{style:`text-align:center;padding:24px;background:${T.ok}10;border-radius:14px;border:1px solid ${T.ok}28;margin-bottom:16px`},[
-      h('div',{style:'font-size:36px;margin-bottom:6px'},'\u2713'),
-      h('div',{style:`font-family:var(--disp);font-size:22px;color:${T.ok};font-weight:700`},'EXERCISE COMPLETE'),
-      h('button',{style:`margin-top:14px;background:${T.ok};color:${T.bg};border:none;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:var(--disp);font-size:16px;font-weight:700`,onClick:()=>{navTo(state.exIdx+1);render();}},'NEXT EXERCISE \u2192'),
-    ]));
+    const rest=wkt.exercises.map((e,i)=>i).filter(i=>wkt.exercises[i].loggedSets.length<wkt.exercises[i].pSets);
+    const nxt=rest.find(i=>i>state.exIdx)!=null?rest.find(i=>i>state.exIdx):rest[0];
+    fixedTop.appendChild(h('div',{style:`font-family:var(--disp);font-size:18px;font-weight:700;color:${T.ok};margin-bottom:10px`},'✓ EXERCISE COMPLETE'));
+    fixedTop.appendChild(LogButton('NEXT EXERCISE','NEXT',()=>{navTo(nxt);render();}));
   }
   main.appendChild(fixedTop);
 
   const scrollArea=h('div',{style:`flex:1;overflow-y:auto;min-height:48px;padding:16px 20px 24px`});
+  if(!isExDone&&doneSets===0){
+    const wu=warmupSets(wkt,state.exIdx,parseFloat(state.wIn)||0);
+    if(wu.length) scrollArea.appendChild(WarmupList(ex,wu,exDef));
+  }
   if(ex.loggedSets.length>0){
-    scrollArea.appendChild(h('div',{style:`display:flex;justify-content:space-between;font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:10px`},[h('span',null,'LOGGED SETS'),h('span',{style:'letter-spacing:0;font-size:11px'},'tap a set to edit')]));
+    scrollArea.appendChild(h('div',{style:`display:flex;justify-content:space-between;font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:10px`},[h('span',null,'LOGGED SETS'),h('span',{style:'letter-spacing:0;font-size:11px'},'tap or slide to rate · hold to edit')]));
     ex.loggedSets.forEach((s,i)=>{
       const ed=state.editSet;
       if(ed&&ed.i===i){ scrollArea.appendChild(EditSetRow(ex,i,isBW)); return; }
-      const rm=(!isBW)&&s.weight>0&&s.reps>0?Math.round(est1RM(s.weight,s.reps)):null;
-      scrollArea.appendChild(h('div',{style:`display:flex;justify-content:space-between;align-items:center;padding:11px 16px;background:${T.sf};border:1px solid ${T.bdr};border-radius:8px;margin-bottom:6px;cursor:pointer`,onClick:()=>{state.editSet={i,w:String(s.weight),r:String(s.reps)};render();}},[
-        h('span',{style:`font-size:12px;color:${T.mut};font-family:var(--mono)`},'SET '+(i+1)),
-        h('span',{style:`font-family:var(--mono);color:${T.ok};font-weight:600;font-size:14px`},(s.weight>0?s.weight+' lbs':'BW')+' \u00d7 '+s.reps),
-        rm?h('span',{style:`font-family:var(--mono);color:${T.mut};font-size:11px`},'~'+rm+' 1RM'):h('span'),
-      ]));
+      scrollArea.appendChild(SetRow(s,i,isBW,i===ex.loggedSets.length-1&&!s.rpe));
     });
   }
   main.appendChild(scrollArea);
@@ -1007,6 +1110,109 @@ function EndSheet(wkt){
       btn('KEEP GOING',T.sf,T.txt,close,'1px solid '+T.bdr),
     ]));
 }
+// ── Effort (RPE) on the set rows ──
+// Slide a finger across a logged set: it fills bright green (6, easy) → yellow (8) → red (10, max).
+// Once set, the bar stays as a soft tint, so the rows show effort climbing set to set.
+const RPE_OPTS=[[6,'easy'],[7,'3 left'],[8,'2 left'],[9,'1 left'],[10,'max']];
+const RPE_TEXT={6:'easy',6.5:'3–4 left',7:'3 left',7.5:'2–3 left',8:'2 left',8.5:'1–2 left',9:'1 left',9.5:'maybe 1 left',10:'max'};
+const rpeHue=r=>135*Math.pow(1-Math.max(0,Math.min(1,(r-6)/4)),1.3);
+const rpeBright=r=>`hsl(${rpeHue(r)},80%,46%)`;
+const rpeSoft=r=>`hsla(${rpeHue(r)},75%,50%,.17)`;
+const rpeInk=r=>`hsl(${rpeHue(r)},70%,32%)`;
+const rpeWidth=r=>Math.max(8,(r-6)/4*100);
+const snapRpe=f=>Math.round((6+Math.max(0,Math.min(1,f))*4)*2)/2;
+function SetRow(s,i,isBW,hint){
+  const rm=(!isBW)&&s.weight>0&&s.reps>0?Math.round(est1RM(s.weight,s.reps)):null;
+  const fill=h('span',{style:`position:absolute;top:0;bottom:0;left:0;width:${s.rpe?rpeWidth(s.rpe):0}%;background:${s.rpe?rpeSoft(s.rpe):'transparent'};transition:background .25s`});
+  const wt=h('span',{style:`position:relative;font-family:var(--mono);color:${T.ok};font-weight:600;font-size:14px`},(s.weight>0?s.weight+' lbs':'BW')+' \u00d7 '+s.reps);
+  const right=h('span',{style:`position:relative;font-family:var(--mono);font-size:11px;color:${T.mut};white-space:nowrap`},
+    s.rpe?[h('span',{style:`color:${rpeInk(s.rpe)};font-weight:700;font-size:13px`},'@'+s.rpe),rm?'  ~'+rm:'']
+      :hint?h('span',{style:`color:${T.acc};font-family:var(--body);font-size:11px`},'tap or slide to rate →'):(rm?'~'+rm+' 1RM':''));
+  const row=h('div',{style:`position:relative;overflow:hidden;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 16px;background:${T.sf};border:1px solid ${hint?T.acc:T.bdr};border-radius:8px;margin-bottom:6px;cursor:pointer;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none`},[
+    fill,
+    h('span',{style:`position:relative;font-size:12px;color:${T.mut};font-family:var(--mono)`},'SET '+(i+1)),
+    wt, right,
+    // unrated latest set: a faint green→red strip hints at the gesture
+    hint?h('span',{style:'position:absolute;left:0;right:0;bottom:0;height:3px;opacity:.55;background:linear-gradient(90deg,hsl(135,80%,46%),hsl(55,90%,50%),hsl(0,80%,48%))'}):null,
+  ]);
+  // Tap = set effort where you tapped · slide = fine-tune · hold (0.5s, no movement) = edit
+  const HOLD_MS=500;
+  let x0=null,y0=null,dragging=false,held=false,timer=null,val=s.rpe||null;
+  const at=x=>{ const r=row.getBoundingClientRect(); return snapRpe((x-r.left)/r.width); };
+  const show=v=>{
+    val=v; wt.style.color=T.txt;
+    fill.style.width=rpeWidth(v)+'%'; fill.style.background=rpeBright(v);
+    right.textContent=v+' · '+RPE_TEXT[v]; right.style.color=T.txt; right.style.fontWeight='600';
+  };
+  const commit=()=>{ s.rpe=val; persistActive(); setTimeout(render,dragging?0:220); };  // brief bright flash on tap
+  const stop=()=>{ clearTimeout(timer); x0=null; };
+  row.addEventListener('pointerdown',e=>{
+    x0=e.clientX; y0=e.clientY; dragging=false; held=false;
+    clearTimeout(timer);
+    timer=setTimeout(()=>{ held=true; x0=null; state.editSet={i,w:String(s.weight),r:String(s.reps),rpe:s.rpe||null}; render(); },HOLD_MS);
+  });
+  row.addEventListener('pointermove',e=>{
+    if(x0==null) return;
+    const dx=e.clientX-x0, dy=e.clientY-y0;
+    if(!dragging){
+      if(Math.abs(dx)<8&&Math.abs(dy)<8) return;
+      clearTimeout(timer);
+      if(Math.abs(dy)>Math.abs(dx)){ stop(); return; }          // vertical = list scroll
+      dragging=true; try{ row.setPointerCapture(e.pointerId); }catch(_){}
+    }
+    show(at(e.clientX));
+  });
+  row.addEventListener('pointerup',e=>{
+    if(x0==null||held){ stop(); return; }
+    clearTimeout(timer);
+    if(!dragging) show(at(e.clientX));
+    x0=null; commit();
+  });
+  row.addEventListener('pointercancel',()=>{ const d=dragging; stop(); dragging=false; if(d) render(); });
+  row.addEventListener('contextmenu',e=>e.preventDefault());
+  return row;
+}
+
+// ═══ WARM-UP SETS ═══
+const BAR=45, PLATES=[45,35,25,10,5,2.5];
+function platesPerSide(w){
+  let side=(w-BAR)/2; if(side<=0) return 'empty bar';
+  const out=[]; PLATES.forEach(p=>{ while(side>=p-1e-9){ out.push(p); side-=p; } });
+  return out.join(' + ')+' / side';
+}
+// Warm-up ramp for the FIRST movement only (it replaces the general warm-up screen).
+// Barbell: empty bar → 50% → 70% → 85%; dumbbell/cable: 50% → 75%; bodyweight: one easy half-rep set.
+function warmupSets(wkt,idx,work){
+  if(idx!==0) return [];
+  const ex=wkt.exercises[0], def=getExDef(ex);
+  if(def.type==='recovery') return [];
+  if(isBWEx(def)) return [{w:0,r:Math.max(3,Math.ceil((ex.pReps||def.reps||8)/2))}];
+  if(!(work>0)) return [];
+  const bar=(def.eq||[]).includes('barbell'), oly=def.type==='olympic';
+  const plan=bar?[[0,oly?5:10],[0.5,oly?3:5],[0.7,oly?2:3],[0.85,1]]:[[0.5,8],[0.75,3]];   // 0 = empty bar
+  const gap=bar?20:5, out=[];
+  plan.forEach(([p,r])=>{
+    const w=p===0?BAR:Math.max(bar?BAR:5,Math.round(work*p/5)*5);
+    const prev=out.length?out[out.length-1].w:0;
+    if(w<work&&(!out.length||w>=prev+gap)) out.push({w,r});
+  });
+  return out;
+}
+function WarmupList(ex,sets,def){
+  const done=ex.wuDone||[], bar=(def.eq||[]).includes('barbell');
+  return h('div',{style:'margin-bottom:14px'},[
+    h('div',{style:`display:flex;justify-content:space-between;font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:8px`},[h('span',null,'WARM-UP SETS'),h('span',{style:'letter-spacing:0;font-size:11px'},'tap when done · not logged')]),
+  ].concat(sets.map((s,i)=>{
+    const d=done.includes(i);
+    return h('div',{style:`display:flex;align-items:center;gap:12px;padding:9px 14px;background:${d?T.el:T.sf};border:1px dashed ${T.bdr};border-radius:8px;margin-bottom:6px;cursor:pointer;opacity:${d?.6:1}`,
+      onClick:()=>{ ex.wuDone=d?done.filter(x=>x!==i):done.concat(i); persistActive(); render(); }},[
+      h('span',{style:`width:18px;height:18px;border-radius:9px;border:1.5px solid ${d?T.ok:T.bdr};background:${d?T.ok:'transparent'};color:${T.bg};font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0`},d?'✓':''),
+      h('span',{style:`font-family:var(--mono);font-size:14px;color:${T.txt};text-decoration:${d?'line-through':'none'}`},s.w?s.w+' lbs × '+s.r:'BW × '+s.r+' · easy'),
+      bar?h('span',{style:`margin-left:auto;font-size:11px;color:${T.mut}`},platesPerSide(s.w)):null,
+    ]);
+  })));
+}
+
 function EditSetRow(ex,i,isBW){
   const ed=state.editSet;
   const inp=(val,key,mode)=>h('input',{type:'number',inputmode:mode,value:val,style:`width:100%;padding:8px 4px;background:${T.el};border:1px solid ${T.bdr};border-radius:8px;color:${T.txt};font-family:var(--mono);font-size:18px;text-align:center`,onInput:e=>{state.editSet[key]=e.target.value;}});
@@ -1019,12 +1225,17 @@ function EditSetRow(ex,i,isBW){
       h('div',{style:'flex:1'},inp(ed.r,'r','numeric')),
       h('span',{style:`color:${T.mut};font-size:12px`},'reps'),
     ]),
+    h('div',{style:'display:flex;gap:6px;align-items:center;margin-bottom:10px'},[h('span',{style:`font-size:10px;letter-spacing:1.5px;color:${T.mut};margin-right:2px`},'RPE')].concat(RPE_OPTS.map(([v])=>{
+      const on=ed.rpe===v;
+      return h('button',{style:`flex:1;padding:6px 0;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:13px;border:1px solid ${on?T.acc:T.bdr};background:${on?T.acc:T.sf};color:${on?T.bg:T.txt}`,onClick:()=>{ed.rpe=on?null:v;render();}},String(v));
+    }))),
     ed.err?h('div',{style:`font-size:12px;color:${T.bad};margin-bottom:8px`},ed.err):null,
     h('div',{style:'display:flex;gap:8px'},[
       small('Save',T.acc,T.bg,()=>{
         const err=setError(parseFloat(ed.w)||0,parseInt(ed.r)||0,isBW);
         if(err){ed.err=err;render();return;}
         const s=ex.loggedSets[i]; s.weight=parseFloat(ed.w)||0; s.reps=parseInt(ed.r)||0;
+        if(ed.rpe) s.rpe=ed.rpe; else delete s.rpe;
         state.editSet=null; persistActive(); render();
       }),
       small('Delete',T.sf,T.bad,()=>{ ex.loggedSets.splice(i,1); state.editSet=null; persistActive(); render(); }),
@@ -1050,21 +1261,21 @@ function discardWorkout(){
 // While resting, LOG SET is the rest timer: an orange fill drains, it throbs for the
 // last 10s, then turns green ("READY") until the set is logged. Tapping always logs.
 const REST_THROB=10;
-function LogButton(n){
+function LogButton(label,short,onClick){
   const t=state.timer, resting=t.on, ready=!t.on&&t.ready;
   const base=`width:100%;padding:17px;border:none;border-radius:12px;cursor:pointer;color:${T.bg};position:relative;overflow:hidden;font-weight:700;`;
   if(resting){
-    return h('button',{id:'log-btn',class:t.s<=REST_THROB?'throb':'',style:base+'padding:14px 16px;background:#3a3632',onClick:logSet},[
+    return h('button',{id:'log-btn',class:t.s<=REST_THROB?'throb':'',style:base+'padding:14px 16px;background:#3a3632',onClick},[
       h('span',{id:'rest-fill',style:`position:absolute;top:0;bottom:0;left:0;width:${t.s/t.total*100}%;background:${T.tmr};transition:width 1s linear`}),
       h('span',{style:'position:relative;display:flex;justify-content:space-between;align-items:center'},[
         h('span',{style:'font-family:var(--body);font-size:13px;letter-spacing:3px;font-weight:600'},'RESTING'),
         h('span',{id:'rest-secs',style:'font-family:var(--mono);font-size:28px;line-height:1'},fmtT(t.s)),
-        h('span',{style:'font-family:var(--body);font-size:13px;letter-spacing:1px;font-weight:600;opacity:.85'},'LOG SET '+n+' →'),
+        h('span',{style:'font-family:var(--body);font-size:13px;letter-spacing:1px;font-weight:600;opacity:.85'},short+' →'),
       ]),
     ]);
   }
-  return h('button',{id:'log-btn',class:ready?'ready':'',style:base+`background:${ready?T.ok:T.acc};font-family:var(--disp);font-size:${ready?22:26}px;letter-spacing:2px;transition:background .3s`,onClick:logSet},
-    ready?'READY · LOG SET '+n:'LOG SET '+n);
+  return h('button',{id:'log-btn',class:ready?'ready':'',style:base+`background:${ready?T.ok:T.acc};font-family:var(--disp);font-size:${ready?22:26}px;letter-spacing:2px;transition:background .3s`,onClick},
+    ready?'READY · '+label:label);
 }
 // Swipe up/down on a number field to step it (weight ±5, reps ±1); a tap with no drag
 // opens the number pad. Once the field is focused it behaves like a normal input.
@@ -1126,7 +1337,7 @@ function swapExercise(){
   const all=DB.filter(e=>hasEq(e,equip)&&e.id!==ex.id&&!wkt.exercises.find(s=>s.id===e.id));
   let pool;
   if(target==='recovery'){ pool=all.filter(e=>e.type==='recovery'); }
-  else if(target==='gaps'){
+  else if(target==='gaps'||target==='today'){
     // Same gap muscle as the current exercise first, then any gap muscle
     const ms=wkt.config.muscles||[], base=all.filter(e=>e.type!=='recovery'&&e.type!=='olympic'), mine=musclesOf(def).filter(m=>ms.includes(m));
     pool=base.filter(e=>musclesOf(e).some(m=>mine.includes(m)));
@@ -1168,15 +1379,11 @@ function logSet(){
   state.editSet=null;
   ex.loggedSets.push({weight:loggedW,reps:loggedReps,ts:Date.now()});
   startRest(ex.rest);
-  if(ex.loggedSets.length>=ex.pSets&&state.exIdx+1<state.wkt.exercises.length){
-    navTo(state.exIdx+1);
-  } else {
-    const def2=getExDef(ex), tgt=def2.reps||ex.pReps, rMax=def2.repMax||tgt+3;
-    if(loggedReps>=rMax) state.rIn=String(rMax);
-    else if(loggedReps>=tgt) state.rIn=String(Math.min(rMax,loggedReps+1));
-    else state.rIn=String(loggedReps);
-    persistActive();
-  }
+  const def2=getExDef(ex), tgt=def2.reps||ex.pReps, rMax=def2.repMax||tgt+3;
+  if(loggedReps>=rMax) state.rIn=String(rMax);
+  else if(loggedReps>=tgt) state.rIn=String(Math.min(rMax,loggedReps+1));
+  else state.rIn=String(loggedReps);
+  persistActive();
   render();
 }
 
@@ -1282,7 +1489,7 @@ function History(){
     const inner=h('div',{style:`background:${T.sf};border:1px solid ${T.bdr};border-radius:12px;user-select:none;position:relative;z-index:1;transition:transform .22s cubic-bezier(.25,1,.5,1)`});
     inner.appendChild(h('div',{style:'padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center',onClick:()=>{if(state.histOpen!=null){state.histOpen=null;render();return;}state.histExp=isExp?null:i;render();}},[
       h('div',null,[
-        h('div',{style:`font-family:var(--disp);font-size:20px;letter-spacing:1px;color:${T.acc};font-weight:700`},w.config.target.toUpperCase()+' · '+w.config.dur+'MIN'),
+        h('div',{style:`font-family:var(--disp);font-size:20px;letter-spacing:1px;color:${T.acc};font-weight:700`},wktLabel(w.config)),
         h('div',{style:`font-size:12px;color:${T.mut};margin-top:3px`},fmtDate(w.date)+' · '+fmtT(w.elapsed||0)),
       ]),
       h('div',{style:'text-align:right'},[
@@ -1303,7 +1510,7 @@ function History(){
               best?h('div',{style:`font-family:var(--mono);font-size:11px;color:${T.mut}`},'~'+best+' 1RM'):null,
             ]),
           ]),
-          h('div',{style:'display:flex;flex-wrap:wrap;gap:6px'},ex.loggedSets.length?ex.loggedSets.map(s=>h('div',{style:`background:${T.el};border-radius:6px;padding:4px 10px;font-size:12px;font-family:var(--mono);color:${T.ok}`},(s.weight>0?s.weight+'×'+s.reps:'BW×'+s.reps))):[h('span',{style:`font-size:12px;color:${T.mut}`},'No sets logged')]),
+          h('div',{style:'display:flex;flex-wrap:wrap;gap:6px'},ex.loggedSets.length?ex.loggedSets.map(s=>h('div',{style:`background:${s.rpe?rpeSoft(s.rpe):T.el};border-radius:6px;padding:4px 10px;font-size:12px;font-family:var(--mono);color:${T.ok}`},(s.weight>0?s.weight+'×'+s.reps:'BW×'+s.reps)+(s.rpe?' @'+s.rpe:''))):[h('span',{style:`font-size:12px;color:${T.mut}`},'No sets logged')]),
         ]));
       });
       det.appendChild(h('div',{style:`margin-top:8px;padding-top:12px;border-top:1px solid ${T.bdr};display:flex;gap:20px`},[
@@ -1418,7 +1625,7 @@ function buildReport(days){
     else if(pat.push>0&&r<0.67) gaps.push({sev:'warn',text:'Pulling '+(pat.pull/pat.push).toFixed(1)+'× more than pushing'});
   }
   const stale=[];
-  const regionOf=c=>c.target==='gaps'?(c.warm||'full'):c.target;
+  const regionOf=c=>c.target==='gaps'||c.target==='today'?(c.warm||'full'):c.target;
   const lastOf=tg=>{ const w=all.filter(x=>x.config&&(regionOf(x.config)===tg||regionOf(x.config)==='full')).pop(); return w?Math.floor((now-tOf(w))/DAY):null; };
   [['upper','Upper body'],['lower','Lower body']].forEach(([tg,label])=>{
     const d=lastOf(tg);
@@ -1644,24 +1851,42 @@ function parseCSV(text){
 }
 function handleExport(){
   if(!state.saved.length){ showToast('err','No workouts to export'); return; }
-  const header=['workout_id','date','target','duration_min','elapsed_sec','exercise_id','exercise_name','set_number','weight_lbs','reps'];
+  const header=['workout_id','date','target','duration_min','elapsed_sec','exercise_id','exercise_name','set_number','weight_lbs','reps','rpe'];
   const rows=[header];
   state.saved.forEach(w=>{
     const wid=w.id||'', date=w.date||'', tgt=w.config?w.config.target:'', dur=w.config?w.config.dur:'', el=w.elapsed||0;
     (w.exercises||[]).forEach(ex=>{
       if(ex.loggedSets&&ex.loggedSets.length){
-        ex.loggedSets.forEach((s,i)=>rows.push([wid,date,tgt,dur,el,ex.id,ex.name,i+1,s.weight,s.reps]));
+        ex.loggedSets.forEach((s,i)=>rows.push([wid,date,tgt,dur,el,ex.id,ex.name,i+1,s.weight,s.reps,s.rpe||'']));
       } else {
-        rows.push([wid,date,tgt,dur,el,ex.id,ex.name,'','','']);
+        rows.push([wid,date,tgt,dur,el,ex.id,ex.name,'','','','']);
       }
     });
   });
   const csv=rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob), a=document.createElement('a');
-  a.href=url; a.download='forge-backup-'+new Date().toISOString().slice(0,10)+'.csv';
+  const name='forge-backup-'+new Date().toISOString().slice(0,10)+'.csv';
+  const done=()=>{ markBackedUp(); showToast('ok','Exported '+state.saved.length+' workout'+(state.saved.length>1?'s':'')); };
+  // iPhone: share sheet → "Save to Files" / AirDrop / email; elsewhere: plain download
+  try{
+    const file=new File([csv],name,{type:'text/csv'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:'FORGE backup'}).then(done).catch(()=>{});
+      return;
+    }
+  }catch(e){}
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'})), a=document.createElement('a');
+  a.href=url; a.download=name;
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  showToast('ok','Exported '+state.saved.length+' workout'+(state.saved.length>1?'s':''));
+  done();
+}
+// Backup reminder bookkeeping: when, and how many workouts existed at the time
+const BACKUP_KEY='forge_backup_v1';
+function markBackedUp(){ try{ localStorage.setItem(BACKUP_KEY,JSON.stringify({at:Date.now(),count:state.saved.length})); }catch(e){} }
+function backupDue(){
+  if(state.saved.length<3) return null;
+  let b=null; try{ b=JSON.parse(localStorage.getItem(BACKUP_KEY)||'null'); }catch(e){}
+  const since=state.saved.length-(b?b.count:0), days=b?(Date.now()-b.at)/DAY:Infinity;
+  return since>=5||(since>0&&days>=14)?{since,never:!b}:null;
 }
 function handleImportFile(e){
   const file=e.target.files&&e.target.files[0]; if(!file)return;
@@ -1674,7 +1899,7 @@ function handleImportFile(e){
       const ci=name=>head.indexOf(name);
       const need=['workout_id','date','exercise_id'];
       if(need.some(n=>ci(n)<0)) throw new Error('Missing required columns');
-      const cW=ci('workout_id'),cD=ci('date'),cT=ci('target'),cDur=ci('duration_min'),cEl=ci('elapsed_sec'),cEi=ci('exercise_id'),cEn=ci('exercise_name'),cSn=ci('set_number'),cWt=ci('weight_lbs'),cR=ci('reps');
+      const cW=ci('workout_id'),cD=ci('date'),cT=ci('target'),cDur=ci('duration_min'),cEl=ci('elapsed_sec'),cEi=ci('exercise_id'),cEn=ci('exercise_name'),cSn=ci('set_number'),cWt=ci('weight_lbs'),cR=ci('reps'),cRpe=ci('rpe');
       const byW=new Map();
       rows.slice(1).forEach(r=>{
         const wid=r[cW]; if(wid==null||wid==='')return;
@@ -1688,7 +1913,7 @@ function handleImportFile(e){
           w.exMap.set(exId,Object.assign({},def,{id:exId,name:exName||def.name||exId,pSets:def.sets||3,pReps:def.reps||8,loggedSets:[]}));
         }
         const sn=cSn>=0?r[cSn]:'', rep=cR>=0?r[cR]:'';
-        if(sn!==''&&rep!==''){ w.exMap.get(exId).loggedSets.push({weight:parseFloat(r[cWt])||0,reps:parseInt(rep)||0,ts:Date.now()}); }
+        if(sn!==''&&rep!==''){ w.exMap.get(exId).loggedSets.push(Object.assign({weight:parseFloat(r[cWt])||0,reps:parseInt(rep)||0,ts:Date.now()},cRpe>=0&&parseFloat(r[cRpe])?{rpe:parseFloat(r[cRpe])}:{})); }
       });
       const valid=Array.from(byW.values()).map(w=>({id:w.id,date:w.date,config:w.config,elapsed:w.elapsed,exercises:Array.from(w.exMap.values())}));
       if(!valid.length) throw new Error('No valid workouts found');
@@ -1704,6 +1929,9 @@ function handleImportFile(e){
 
 // ═══ BOOT ═══
 render();
+// Offline: cache the app so it opens with no signal. Ask the browser not to evict our data.
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(()=>{});
+try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch(e){}
 
 </script>
 </body>
