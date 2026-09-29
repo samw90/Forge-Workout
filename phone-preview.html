@@ -44,7 +44,7 @@
           <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#1A1A1A" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#1A1A1A"/><path d="M25 4.5v4a2 2 0 000-4z" fill="#1A1A1A" opacity=".4"/></svg>
         </span>
       </div>
-      <iframe src="index.html" title="FORGE app"></iframe>
+      <iframe id="app" title="FORGE app"></iframe>
       <div class="home"></div>
     </div>
   </div>
@@ -53,6 +53,8 @@
   // Scale the phone to fit the window
   const fit=()=>{ const s=Math.min(1,(innerHeight-40)/960,(innerWidth-40)/458); document.getElementById('phone').style.transform='scale('+s+')'; };
   addEventListener('resize',fit); fit();
+  // Cache-bust so edits to index.html always show on reload
+  document.getElementById('app').src='index.html?v='+Date.now();
 </script>
 </body>
 </html>

@@ -21,6 +21,14 @@
   input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
   input[type=number]{ -moz-appearance:textfield; }
   ::-webkit-scrollbar{ height:0; width:0; }
+  /* LOG SET button doubles as the rest timer */
+  @keyframes throb{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.035); } }
+  @keyframes readyPop{ 0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(45,122,79,.55); } 35%{ transform:scale(1.05); } 100%{ transform:scale(1); box-shadow:0 0 0 18px rgba(45,122,79,0); } }
+  .throb{ animation:throb .9s ease-in-out infinite; }
+  .ready{ animation:readyPop .7s ease-out 2; }
+  /* Swipe-to-step number fields */
+  @keyframes bump{ 0%{ transform:scale(1); } 40%{ transform:scale(1.06); } 100%{ transform:scale(1); } }
+  .bump{ animation:bump .16s ease-out; }
 </style>
 </head>
 <body>
@@ -501,7 +509,27 @@ function genGaps(dur,equip,all){
     const min=Math.min.apply(null,rest.map(exCost)), p=pickOne(rest.filter(e=>exCost(e)===min));
     sel.push(p); used+=exCost(p);
   }
-  const ordered=orderSession(sel);
+  // Fill the requested time. The gap is volume, so first add sets to gap exercises;
+  // then add moves for the next-most-undertrained muscles; then top up sets anywhere.
+  const MAX_SETS=5, extra=new Map(), setCost=e=>45+effRest(e.rest);
+  const gapW=e=>g.muscles.reduce((a,m)=>a+gapCredit(e,m)*g.need[m],0);
+  const bump=(list,rounds)=>{ for(let r=0;r<rounds;r++) list.forEach(e=>{
+    const x=extra.get(e)||0;
+    if(x===r&&e.sets+x<MAX_SETS&&used+setCost(e)<=budget){ extra.set(e,x+1); used+=setCost(e); }
+  }); };
+  bump(sel.filter(e=>gapW(e)>0).sort((a,b)=>gapW(b)-gapW(a)),2);
+  const pool2=all.filter(e=>e.type!=='recovery'&&e.type!=='olympic');
+  while(sel.length<MAX_EX){
+    const cand=pool2.filter(e=>!sel.includes(e)&&used+exCost(e)<=budget)
+      .map(e=>({e,v:MUSCLES.reduce((a,[m])=>a+gapCredit(e,m)*(g.need[m]||0),0)*(sel.some(x=>sameTags(x,e))?0.5:1)}))
+      .filter(x=>x.v>0);
+    if(!cand.length) break;
+    const best=Math.max.apply(null,cand.map(x=>x.v));
+    const p=pickOne(cand.filter(x=>x.v>=best*0.85)).e;
+    sel.push(p); used+=exCost(p);
+  }
+  bump(sel.slice().sort((a,b)=>gapW(b)-gapW(a)),3);
+  const ordered=orderSession(sel.map(e=>extra.get(e)?Object.assign({},e,{sets:e.sets+extra.get(e)}):e));
   const up=sel.some(e=>e.muscles.includes('upper')), low=sel.some(e=>e.muscles.includes('lower'));
   const w=toWkt(ordered,dur,'gaps',equip);
   w.config.muscles=g.muscles; w.config.focus=g.labels;
@@ -845,7 +873,8 @@ function Active(){
   const badge=typeBadge[ex.type]||typeBadge.accessory;
   const isBW=isBWEx(exDef);
 
-  const wrap=h('div',{style:`height:100dvh;background:${T.bg};color:${T.txt};font-family:var(--body);display:flex;flex-direction:column;overflow:hidden`});
+  // Pinned to the viewport: the page itself never scrolls, only the logged-sets list does
+  const wrap=h('div',{style:`position:fixed;inset:0;background:${T.bg};color:${T.txt};font-family:var(--body);display:flex;flex-direction:column;overflow:hidden`});
   // top bar
   wrap.appendChild(h('div',{style:`flex-shrink:0;background:${T.sf};border-bottom:1px solid ${T.bdr};padding:14px 20px;display:flex;justify-content:space-between;align-items:center`},[
     h('div',null,[
@@ -919,11 +948,11 @@ function Active(){
     const wInput=h('input',{type:'number',inputmode:'decimal',value:state.wIn,placeholder:'0',style:`width:100%;box-sizing:border-box;padding:14px 8px;background:${T.el};border:1px solid ${T.bdr};border-radius:10px;color:${T.txt};font-family:var(--mono);font-size:32px;text-align:center`,onInput:e=>{state.wIn=e.target.value;}});
     const rInput=h('input',{type:'number',inputmode:'numeric',value:state.rIn,placeholder:String(ex.pReps),style:`width:100%;box-sizing:border-box;padding:14px 8px;background:${T.el};border:1px solid ${T.bdr};border-radius:10px;color:${T.txt};font-family:var(--mono);font-size:32px;text-align:center`,onInput:e=>{state.rIn=e.target.value;}});
     fixedTop.appendChild(h('div',{style:'display:flex;gap:10px;margin-bottom:14px'},[
-      h('div',{style:'flex:1'},[h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:6px`},'WEIGHT (lbs)'),wInput]),
-      h('div',{style:'flex:1'},[h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:6px`,html:'REPS <span style="color:'+T.bdr+';letter-spacing:0;font-size:10px">('+ex.pReps+'\u2013'+(ex.repMax||ex.pReps+3)+')</span>'}),rInput]),
+      h('div',{style:'flex:1'},[h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:6px`},'WEIGHT (lbs)'),swipeNumber(wInput,5,'wIn')]),
+      h('div',{style:'flex:1'},[h('div',{style:`font-size:10px;letter-spacing:2px;color:${T.mut};margin-bottom:6px`,html:'REPS <span style="color:'+T.bdr+';letter-spacing:0;font-size:10px">('+ex.pReps+'\u2013'+(ex.repMax||ex.pReps+3)+')</span>'}),swipeNumber(rInput,1,'rIn')]),
     ]));
     if(state.logErr){ fixedTop.appendChild(h('div',{style:`font-size:12px;color:${T.bad};margin:-6px 0 10px;text-align:center`},state.logErr)); state.logErr=null; }
-    fixedTop.appendChild(h('button',{style:`width:100%;padding:17px;background:${T.acc};color:${T.bg};border:none;border-radius:12px;cursor:pointer;font-family:var(--disp);font-size:26px;letter-spacing:2px;font-weight:700`,onClick:logSet},'LOG SET '+(doneSets+1)));
+    fixedTop.appendChild(LogButton(doneSets+1));
   } else if(!isAllDone){
     fixedTop.appendChild(h('div',{style:`text-align:center;padding:24px;background:${T.ok}10;border-radius:14px;border:1px solid ${T.ok}28;margin-bottom:16px`},[
       h('div',{style:'font-size:36px;margin-bottom:6px'},'\u2713'),
@@ -958,21 +987,6 @@ function Active(){
         h('div',{style:`font-size:12px;color:${T.bg}99;margin-top:2px`},fmtT(state.elapsed)+' · '+wkt.exercises.reduce((a,e)=>a+e.loggedSets.length,0)+' total sets'),
       ]),
       h('button',{style:`background:${T.bg};color:${T.ok};border:none;padding:12px 22px;border-radius:10px;cursor:pointer;font-family:var(--disp);font-size:20px;font-weight:700`,onClick:saveWorkout},'SAVE →'),
-    ]));
-  }
-  // rest timer
-  if(state.timer.on&&!isAllDone){
-    const C=2*Math.PI*32;
-    wrap.appendChild(h('div',{style:`flex-shrink:0;background:${T.sf};border-top:2px solid ${T.tmr};padding:16px 24px;display:flex;align-items:center;justify-content:space-between`},[
-      h('div',null,[
-        h('div',{style:`font-size:10px;letter-spacing:3px;color:${T.tmr};margin-bottom:4px`},'REST'),
-        h('div',{id:'rest-secs',style:`font-family:var(--mono);font-size:54px;color:${T.txt};line-height:1`},fmtT(state.timer.s)),
-        h('div',{id:'rest-pct',style:`font-size:11px;color:${T.mut};margin-top:4px`},Math.round((state.timer.s/state.timer.total)*100)+'% remaining'),
-      ]),
-      h('div',{style:'display:flex;flex-direction:column;align-items:center;gap:10px'},[
-        h('div',{html:`<svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="32" fill="none" stroke="${T.bdr}" stroke-width="4"/><circle id="rest-ring" cx="38" cy="38" r="32" fill="none" stroke="${T.tmr}" stroke-width="4" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-state.timer.s/state.timer.total)}" stroke-linecap="round" transform="rotate(-90 38 38)" style="transition:stroke-dashoffset 1s linear"/></svg>`}),
-        h('button',{style:`background:${T.el};border:1px solid ${T.bdr};color:${T.mut};padding:7px 16px;border-radius:8px;cursor:pointer;font-family:var(--body);font-size:12px`,onClick:()=>{state.timer={on:false,s:0,total:0};if(restInterval)clearInterval(restInterval);render();}},'SKIP REST'),
-      ]),
     ]));
   }
   if(state.endPrompt) wrap.appendChild(EndSheet(wkt));
@@ -1032,6 +1046,68 @@ function discardWorkout(){
   clearActive();
   state.wkt=null; state.startT=0; state.elapsed=0; state.endPrompt=null; state.editSet=null;
   go('setup');
+}
+// While resting, LOG SET is the rest timer: an orange fill drains, it throbs for the
+// last 10s, then turns green ("READY") until the set is logged. Tapping always logs.
+const REST_THROB=10;
+function LogButton(n){
+  const t=state.timer, resting=t.on, ready=!t.on&&t.ready;
+  const base=`width:100%;padding:17px;border:none;border-radius:12px;cursor:pointer;color:${T.bg};position:relative;overflow:hidden;font-weight:700;`;
+  if(resting){
+    return h('button',{id:'log-btn',class:t.s<=REST_THROB?'throb':'',style:base+'padding:14px 16px;background:#3a3632',onClick:logSet},[
+      h('span',{id:'rest-fill',style:`position:absolute;top:0;bottom:0;left:0;width:${t.s/t.total*100}%;background:${T.tmr};transition:width 1s linear`}),
+      h('span',{style:'position:relative;display:flex;justify-content:space-between;align-items:center'},[
+        h('span',{style:'font-family:var(--body);font-size:13px;letter-spacing:3px;font-weight:600'},'RESTING'),
+        h('span',{id:'rest-secs',style:'font-family:var(--mono);font-size:28px;line-height:1'},fmtT(t.s)),
+        h('span',{style:'font-family:var(--body);font-size:13px;letter-spacing:1px;font-weight:600;opacity:.85'},'LOG SET '+n+' →'),
+      ]),
+    ]);
+  }
+  return h('button',{id:'log-btn',class:ready?'ready':'',style:base+`background:${ready?T.ok:T.acc};font-family:var(--disp);font-size:${ready?22:26}px;letter-spacing:2px;transition:background .3s`,onClick:logSet},
+    ready?'READY · LOG SET '+n:'LOG SET '+n);
+}
+// Swipe up/down on a number field to step it (weight ±5, reps ±1); a tap with no drag
+// opens the number pad. Once the field is focused it behaves like a normal input.
+function swipeNumber(inp,step,key){
+  const STEP_PX=22, TAP_PX=8;
+  let y0=null, base=0, moved=false;
+  const box=h('div',{style:'position:relative'},[
+    inp,
+    h('span',{style:`position:absolute;top:4px;left:0;right:0;text-align:center;font-size:9px;line-height:1;color:${T.mut};opacity:.55;pointer-events:none`},'▲'),
+    h('span',{style:`position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px;line-height:1;color:${T.mut};opacity:.55;pointer-events:none`},'▼'),
+  ]);
+  inp.style.touchAction='none';
+  const set=v=>{
+    v=Math.max(0,Math.round(v*100)/100);
+    if(String(v)===state[key]) return;
+    state[key]=String(v); inp.value=state[key];
+    inp.classList.remove('bump'); void inp.offsetWidth; inp.classList.add('bump');
+  };
+  // Block the native tap-to-focus; we decide on release whether it was a tap or a swipe
+  inp.addEventListener('touchstart',e=>{ if(document.activeElement!==inp) e.preventDefault(); },{passive:false});
+  inp.addEventListener('pointerdown',e=>{
+    if(document.activeElement===inp) return;
+    e.preventDefault(); y0=e.clientY; base=parseFloat(state[key])||0; moved=false;
+    try{ inp.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  inp.addEventListener('pointermove',e=>{
+    if(y0==null) return;
+    const dy=y0-e.clientY;
+    if(!moved&&Math.abs(dy)<TAP_PX) return;
+    if(!moved){ moved=true; inp.style.borderColor=T.acc; }
+    // first step after a short flick, then one step per STEP_PX of travel
+    const steps=Math.sign(dy)*Math.floor((Math.abs(dy)+STEP_PX/2)/STEP_PX);
+    set(base+steps*step);
+  });
+  const release=()=>{
+    if(y0==null) return;
+    y0=null; inp.style.borderColor=T.bdr;
+    if(!moved){ inp.focus(); try{ inp.select(); }catch(_){} }
+    else render();                          // refresh "Next: N reps" etc.
+  };
+  inp.addEventListener('pointerup',release);
+  inp.addEventListener('pointercancel',()=>{ y0=null; inp.style.borderColor=T.bdr; });
+  return box;
 }
 function statBox(label,val,color){
   return h('div',null,[
@@ -1141,7 +1217,7 @@ function tickRest(){
   if(!state.timer.on){clearInterval(restInterval);return;}
   const s=Math.max(0,Math.ceil((state.timer.endAt-Date.now())/1000));
   if(s<=0){
-    state.timer={on:false,s:0,total:0};
+    state.timer={on:false,s:0,total:0,ready:true};   // LOG SET turns green until the next set
     clearInterval(restInterval);
     restCue();
     render();
@@ -1150,8 +1226,8 @@ function tickRest(){
   if(s!==state.timer.s){
     state.timer.s=s;
     const se=document.getElementById('rest-secs'); if(se)se.textContent=fmtT(s);
-    const pe=document.getElementById('rest-pct'); if(pe)pe.textContent=Math.round((s/state.timer.total)*100)+'% remaining';
-    const ring=document.getElementById('rest-ring'); if(ring){const C=2*Math.PI*32;ring.setAttribute('stroke-dashoffset',C*(1-s/state.timer.total));}
+    const fill=document.getElementById('rest-fill'); if(fill)fill.style.width=(s/state.timer.total*100)+'%';
+    const btn=document.getElementById('log-btn'); if(btn&&s<=REST_THROB)btn.classList.add('throb');
   }
 }
 function saveWorkout(){
